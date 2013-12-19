@@ -1,0 +1,28 @@
+<!-- Ant build script for compiling and running the Amazon Kinesis Connector to Redshift (manifest) sample.
+     Don't forget to fill in your AWS access credentials in AwsCredentials.properties
+     before trying to run it.
+     Please include PostgreSQL driver in the classpath.
+     -->
+<project name="Amazon Kinesis Connector to Redshift Manifest Sample" default="run" basedir="../../">
+	<path id="samples.classpath">
+		<fileset dir="${basedir}/../aws-java-sdk-1.6.9/third-party" includes="**/*.jar" />
+		<fileset dir="${basedir}/../aws-java-sdk-1.6.9/lib" includes="**/*.jar" />
+		<fileset dir="${basedir}/../KinesisClientLibrary/lib" includes="**/*.jar" />
+		<fileset dir="${basedir}/lib" includes="**/*.jar" />
+		<fileset dir="${basedir}/samples" includes="**/*.class" />
+		<pathelement location="." />
+		<pathelement location="${basedir}/samples" />
+		<pathelement location="${basedir}/samples/redshiftmanifest" />
+	</path>
+
+	<target name="clean">
+		<delete>
+			<fileset dir="." includes="**/*.class" />
+		</delete>
+	</target>
+
+	<target name="run">
+		<javac srcdir="." destdir="." classpathref="samples.classpath" />
+		<java classname="samples.redshiftmanifest.RedshiftManifestExecutor" classpathref="samples.classpath" fork="true" />
+	</target>
+</project>
