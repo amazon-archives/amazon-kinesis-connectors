@@ -43,7 +43,7 @@ The library includes implementations for use with [Amazon DynamoDB][aws-dynamodb
 
 Set the following variables (common to all connector types) in kinesis.connectors.KinesisConnectorConfiguration:
 
-+ **AWSCredentialsProvider**: Specify your [AWS credentials](http://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html) or the environment variables you're using to store your credentials.
++ **AWSCredentialsProvider**: Specify the implementation of [AWSCredentialsProvider](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html) that supplies your [AWS credentials](http://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html).
 + **APP_NAME**: The Amazon Kinesis application name (*not* the connector application name) for use with kinesis.clientlibrary.lib.worker.KinesisClientLibConfiguration. For more information, see [Developing Record Consumer Applications](http://docs.aws.amazon.com/kinesis/latest/dev/kinesis-record-processor-app.html) in the Amazon Kinesis Developer Guide.
 + **KINESIS_ENDPOINT** and **KINESIS_INPUT_STREAM**: The endpoint and name of the Kinesis stream that contains the data you're connecting to other AWS services.
 
@@ -70,6 +70,7 @@ Each sample uses the following files:
 To run a sample, complete these steps:
 
 1. Edit the *.properties file, adding your AWS credentials and any necessary AWS resource configurations.
+	+ **Note:** In the samples, [KinesisConnectorExecutor](https://github.com/awslabs/amazon-kinesis-connectors/blob/master/src/main/samples/KinesisConnectorExecutor.java) uses the [DefaultAWSCredentialsProviderChain](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html), which looks for credentials supplied by environment variables, system properties, or IAM role on Amazon EC2. If you prefer to specify your AWS credentials via a properties file on the classpath, edit the sample code to use [ClasspathPropertiesFileCredentialsProvider](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/ClasspathPropertiesFileCredentialsProvider.html) instead.
 2. Confirm that the required AWS resources exist, or set the flags in the *.properties file to indicate that resources should be created when the sample is run.
 3. Within the sample folder, execute **ant run**.
 
