@@ -71,6 +71,7 @@ public class S3Emitter implements IEmitter<byte[]> {
         }
         // Get the S3 filename
         String s3FileName = getS3FileName(buffer.getFirstSequenceNumber(), buffer.getLastSequenceNumber());
+        String s3Bucket = getS3Bucket();
         ByteArrayInputStream object = new ByteArrayInputStream(baos.toByteArray());
         try {
             s3client.putObject(s3Bucket, s3FileName, object, null);
