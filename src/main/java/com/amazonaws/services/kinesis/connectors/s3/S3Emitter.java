@@ -95,4 +95,8 @@ public class S3Emitter implements IEmitter<byte[]> {
         s3client.shutdown();
     }
 
+    protected String getS3Bucket() {
+        return s3Bucket;
+    }
+
 }
