@@ -14,6 +14,7 @@
  */
 package com.amazonaws.services.kinesis.connectors;
 
+import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessor;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessorFactory;
 import com.amazonaws.services.kinesis.connectors.interfaces.IBuffer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
@@ -39,7 +40,7 @@ public class KinesisConnectorRecordProcessorFactory<T, U> implements IRecordProc
     }
 
     @Override
-    public KinesisConnectorRecordProcessor<T, U> createProcessor() {
+    public IRecordProcessor createProcessor() {
         try {
             IBuffer<T> buffer = pipeline.getBuffer(configuration);
             IEmitter<U> emitter = pipeline.getEmitter(configuration);
