@@ -1,6 +1,7 @@
 <!-- Ant build script for compiling and running the Amazon Kinesis Connector to Redshift (manifest) sample.
      Don't forget to fill in your AWS access credentials in AwsCredentials.properties
      before trying to run it.
+     Download PostgreSQL driver: http://jdbc.postgresql.org/download.html
      Please include PostgreSQL driver in the classpath.
      -->
 <project name="Amazon Kinesis Connector to Redshift Manifest Sample" default="run" basedir="../../">
