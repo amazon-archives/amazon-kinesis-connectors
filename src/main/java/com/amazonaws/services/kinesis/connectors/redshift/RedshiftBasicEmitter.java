@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSSessionCredentials;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -57,6 +59,7 @@ public class RedshiftBasicEmitter extends S3Emitter {
     private final Properties loginProperties;
     private final String accessKey;
     private final String secretKey;
+    private final String sessionToken;
 
     public RedshiftBasicEmitter(KinesisConnectorConfiguration configuration) {
         super(configuration);
@@ -67,8 +70,14 @@ public class RedshiftBasicEmitter extends S3Emitter {
         loginProperties = new Properties();
         loginProperties.setProperty("user", configuration.REDSHIFT_USERNAME);
         loginProperties.setProperty("password", configuration.REDSHIFT_PASSWORD);
-        accessKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSAccessKeyId();
-        secretKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSSecretKey();
+        AWSCredentials credentials = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials();
+        accessKey = credentials.getAWSAccessKeyId();
+        secretKey = credentials.getAWSSecretKey();
+        if (credentials instanceof AWSSessionCredentials) {
+            sessionToken = ((AWSSessionCredentials) credentials).getSessionToken();
+        } else {
+            sessionToken = null;
+        }
     }
 
     @Override
@@ -116,7 +125,12 @@ public class RedshiftBasicEmitter extends S3Emitter {
         exec.append("COPY " + redshiftTable + " ");
         exec.append("FROM 's3://" + s3bucket + "/" + s3File + "' ");
         exec.append("CREDENTIALS 'aws_access_key_id=" + accessKey);
-        exec.append(";aws_secret_access_key=" + secretKey + "' ");
+        exec.append(";aws_secret_access_key=" + secretKey);
+        if (sessionToken != null) {
+            exec.append(";token=" + sessionToken);
+        }
+        exec.append("' ");
+
         exec.append("DELIMITER '" + redshiftDelimiter + "'");
         exec.append(";");
         return exec.toString();
