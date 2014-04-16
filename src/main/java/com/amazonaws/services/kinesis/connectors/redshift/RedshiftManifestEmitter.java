@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSSessionCredentials;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -73,6 +75,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     private final char dataDelimiter;
     private final String accessKey;
     private final String secretKey;
+    private final String sessionToken;
     private final String s3Endpoint;
     private final AmazonS3Client s3Client;
     private final boolean copyMandatory;
@@ -91,8 +94,14 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
         if (s3Endpoint != null) {
             s3Client.setEndpoint(s3Endpoint);
         }
-        accessKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSAccessKeyId();
-        secretKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSSecretKey();
+        AWSCredentials credentials = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials();
+        accessKey = credentials.getAWSAccessKeyId();
+        secretKey = credentials.getAWSSecretKey();
+        if (credentials instanceof AWSSessionCredentials) {
+            sessionToken = ((AWSSessionCredentials) credentials).getSessionToken();
+        } else {
+            sessionToken = null;
+        }
         loginProps = new Properties();
         loginProps.setProperty("user", configuration.REDSHIFT_USERNAME);
         loginProps.setProperty("password", configuration.REDSHIFT_PASSWORD);
@@ -277,6 +286,9 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
         redshiftCopy.append("aws_access_key_id=" + accessKey);
         redshiftCopy.append(";");
         redshiftCopy.append("aws_secret_access_key=" + secretKey);
+        if (sessionToken != null) {
+            redshiftCopy.append(";token=").append(sessionToken);
+        }
         redshiftCopy.append("' ");
         redshiftCopy.append("DELIMITER '" + dataDelimiter + "' ");
         redshiftCopy.append("MANIFEST");

@@ -127,7 +127,7 @@ public class RedshiftBasicEmitter extends S3Emitter {
         exec.append("CREDENTIALS 'aws_access_key_id=" + accessKey);
         exec.append(";aws_secret_access_key=" + secretKey);
         if (sessionToken != null) {
-            exec.append(";token=" + sessionToken);
+            exec.append(";token=").append(sessionToken);
         }
         exec.append("' ");
 
