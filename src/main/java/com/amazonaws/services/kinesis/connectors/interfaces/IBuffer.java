@@ -42,6 +42,13 @@ public interface IBuffer<T> {
      * @return record number limit of buffer
      */
     public long getNumRecordsToBuffer();
+    
+    /**
+     * Get the time limit in milliseconds before the records are flushed to the emitter
+     * 
+     * @return time limit in milleseconds
+     */
+    public long getMillisecondsToBuffer();
 
     /**
      * Returns true if the buffer is full and stored records should be sent to the emitter

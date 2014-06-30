@@ -195,8 +195,10 @@ public abstract class KinesisConnectorExecutor<T,U> extends KinesisConnectorExec
      *            Write capacity of the DynamoDB table
      */
     private void createDynamoDBTable(String key, long readCapacityUnits, long writeCapacityUnits) {
-        DynamoDBUtils.createTable(new AmazonDynamoDBClient(config.AWS_CREDENTIALS_PROVIDER),
-                config.DYNAMODB_DATA_TABLE_NAME, key, readCapacityUnits, writeCapacityUnits);
+        AmazonDynamoDBClient dynamodbClient = new AmazonDynamoDBClient(config.AWS_CREDENTIALS_PROVIDER);
+        dynamodbClient.setEndpoint(config.DYNAMODB_ENDPOINT);
+        DynamoDBUtils.createTable(dynamodbClient, config.DYNAMODB_DATA_TABLE_NAME, 
+                key, readCapacityUnits, writeCapacityUnits);
     }
 
     /**

@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.kinesis.AmazonKinesisClient;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.model.CreateStreamRequest;
@@ -48,7 +49,10 @@ public class KinesisUtils {
      */
     public static void createInputStream(KinesisConnectorConfiguration config, int shardCount) {
         AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
-        kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
+        if (config.KINESIS_ENDPOINT != null) {
+            kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        }
         createAndWaitForStreamToBecomeAvailable(kinesisClient, config.KINESIS_INPUT_STREAM, shardCount);
     }
 
@@ -63,7 +67,10 @@ public class KinesisUtils {
      */
     public static void createOutputStream(KinesisConnectorConfiguration config, int shardCount) {
         AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
-        kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
+        if (config.KINESIS_ENDPOINT != null) {
+            kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        }
         createAndWaitForStreamToBecomeAvailable(kinesisClient, config.KINESIS_OUTPUT_STREAM, shardCount);
     }
 
@@ -210,7 +217,10 @@ public class KinesisUtils {
      */
     public static void deleteInputStream(KinesisConnectorConfiguration config) {
         AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
-        kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
+        if (config.KINESIS_ENDPOINT != null) {
+            kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        }
         deleteStream(kinesisClient, config.KINESIS_INPUT_STREAM);
     }
 
@@ -222,7 +232,10 @@ public class KinesisUtils {
      */
     public static void deleteOutputStream(KinesisConnectorConfiguration config) {
         AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
-        kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
+        if (config.KINESIS_ENDPOINT != null) {
+            kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        }
         deleteStream(kinesisClient, config.KINESIS_OUTPUT_STREAM);
     }
 

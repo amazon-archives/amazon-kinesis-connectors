@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
  */
 public class KinesisConnectorConfiguration {
     private static final Log LOG = LogFactory.getLog(KinesisConnectorConfiguration.class);
-    public static final String KINESIS_CONNECTOR_USER_AGENT = "amazon-kinesis-connector-java-1.0.0";
+    public static final String KINESIS_CONNECTOR_USER_AGENT = "amazon-kinesis-connector-java-1.1.0";
     
     // Connector App Property Keys
     public static final String PROP_APP_NAME = "appName";
@@ -55,6 +55,7 @@ public class KinesisConnectorConfiguration {
     public static final String PROP_SHARD_SYNC_INTERVAL = "shardSyncInterval";
     public static final String PROP_CALL_PROCESS_RECORDS_EVEN_FOR_EMPTY_LIST = "callProcessRecordsEvenForEmptyList";
     public static final String PROP_CLEANUP_TERMINATED_SHARDS_BEFORE_EXPIRY = "cleanupTerminatedShardsBeforeExpiry";
+    public static final String PROP_REGION_NAME = "regionName";
     public static final String PROP_S3_ENDPOINT = "s3Endpoint";
     public static final String PROP_S3_BUCKET = "s3Bucket";
     public static final String PROP_REDSHIFT_ENDPOINT = "redshiftEndpoint";
@@ -68,6 +69,7 @@ public class KinesisConnectorConfiguration {
     public static final String PROP_REDSHIFT_COPY_MANDATORY = "redshiftCopyMandatory";
     public static final String PROP_BUFFER_RECORD_COUNT_LIMIT = "bufferRecordCountLimit";
     public static final String PROP_BUFFER_BYTE_SIZE_LIMIT = "bufferByteSizeLimit";
+    public static final String PROP_BUFFER_MILLISECONDS_LIMIT = "bufferMillisecondsLimit";
     public static final String PROP_DYNAMODB_ENDPOINT = "dynamoDBEndpoint";
     public static final String PROP_DYNAMODB_DATA_TABLE_NAME = "dynamoDBDataTableName";
     public static final String PROP_CLOUDWATCH_NAMESPACE = "cloudWatchNamespace";
@@ -80,9 +82,10 @@ public class KinesisConnectorConfiguration {
     public static final long DEFAULT_BACKOFF_INTERVAL = 1000l * 10;
     public static final long DEFAULT_BUFFER_RECORD_COUNT_LIMIT = 1000l;
     public static final long DEFAULT_BUFFER_BYTE_SIZE_LIMIT = 1024 * 1024l;
+    public static final long DEFAULT_BUFFER_MILLISECONDS_LIMIT = Long.MAX_VALUE;
 
     // Default Kinesis Constants
-    public static final String DEFAULT_KINESIS_ENDPOINT = "https://kinesis.us-east-1.amazonaws.com";
+    public static final String DEFAULT_KINESIS_ENDPOINT = null;
     public static final String DEFAULT_KINESIS_INPUT_STREAM = "kinesisInputStream";
     public static final String DEFAULT_KINESIS_OUTPUT_STREAM = "kinesisOutputStream";
 
@@ -93,8 +96,9 @@ public class KinesisConnectorConfiguration {
     public static final long DEFAULT_IDLE_TIME_BETWEEN_READS = 20l;
     public static final long DEFAULT_PARENT_SHARD_POLL_INTERVAL = 20l;
     public static final long DEFAULT_SHARD_SYNC_INTERVAL = 20l;
-    public static final boolean DEFAULT_CALL_PROCESS_RECORDS_EVEN_FOR_EMPTY_LIST = false;
+    public static final boolean DEFAULT_CALL_PROCESS_RECORDS_EVEN_FOR_EMPTY_LIST = true; // this must be set to true for bufferMillisecondsLimit to work
     public static final boolean DEFAULT_CLEANUP_TERMINATED_SHARDS_BEFORE_EXPIRY = false;
+    public static final String DEFAULT_REGION_NAME = "us-east-1";
 
     // Default S3 Constants
     public static final String DEFAULT_S3_ENDPOINT = "https://s3.amazonaws.com";
@@ -127,6 +131,7 @@ public class KinesisConnectorConfiguration {
     public final int RETRY_LIMIT;
     public final long BUFFER_RECORD_COUNT_LIMIT;
     public final long BUFFER_BYTE_SIZE_LIMIT;
+    public final long BUFFER_MILLISECONDS_LIMIT;
     public final String KINESIS_ENDPOINT;
     public final String KINESIS_INPUT_STREAM;
     public final String KINESIS_OUTPUT_STREAM;
@@ -138,6 +143,7 @@ public class KinesisConnectorConfiguration {
     public final long SHARD_SYNC_INTERVAL;
     public final boolean CALL_PROCESS_RECORDS_EVEN_FOR_EMPTY_LIST;
     public final boolean CLEANUP_TERMINATED_SHARDS_BEFORE_EXPIRY;
+    public final String REGION_NAME;
     public final String S3_ENDPOINT;
     public final String S3_BUCKET;
     public final String REDSHIFT_ENDPOINT;
@@ -172,6 +178,8 @@ public class KinesisConnectorConfiguration {
         BUFFER_RECORD_COUNT_LIMIT = getLongProperty(PROP_BUFFER_RECORD_COUNT_LIMIT,
                 DEFAULT_BUFFER_RECORD_COUNT_LIMIT, properties);
         BUFFER_BYTE_SIZE_LIMIT = getLongProperty(PROP_BUFFER_BYTE_SIZE_LIMIT, DEFAULT_BUFFER_BYTE_SIZE_LIMIT,
+                properties);
+        BUFFER_MILLISECONDS_LIMIT = getLongProperty(PROP_BUFFER_MILLISECONDS_LIMIT, DEFAULT_BUFFER_MILLISECONDS_LIMIT,
                 properties);
 
         // Kinesis configuration
@@ -227,6 +235,7 @@ public class KinesisConnectorConfiguration {
         CLEANUP_TERMINATED_SHARDS_BEFORE_EXPIRY = getBooleanProperty(
                 PROP_CLEANUP_TERMINATED_SHARDS_BEFORE_EXPIRY,
                 DEFAULT_CLEANUP_TERMINATED_SHARDS_BEFORE_EXPIRY, properties);
+        REGION_NAME = properties.getProperty(PROP_REGION_NAME, DEFAULT_REGION_NAME);
     }
 
     private boolean getBooleanProperty(String property, boolean defaultValue, Properties properties) {

@@ -96,6 +96,8 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
 
     @Override
     public void processRecords(List<Record> records, IRecordProcessorCheckpointer checkpointer) {
+        // Note: This method will be called even for empty record lists. This is needed for checking the buffer time threshold.
+        
         if (shardId == null) {
             throw new IllegalStateException("Record processor not initialized");
         }
@@ -112,7 +114,7 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
                 LOG.error(e);
             }
         }
-        // Emit when the buffer is full
+
         if (buffer.shouldFlush()) {
             List<U> emitItems = transformToOutput(buffer.getRecords());
             emit(checkpointer, emitItems);

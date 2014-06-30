@@ -16,7 +16,8 @@ A connector pipeline uses the following interfaces:
 
 + **IKinesisConnectorPipeline**: The pipeline implementation itself.
 + **ITransformer**: Defines the transformation of records from the Amazon Kinesis stream in order to suit the user-defined data model. Includes methods for custom serializer/deserializers.
-+ **IFilter** and **IBuffer**: IFilter defines a method for excluding irrelevant records from the processing. IBuffer defines a system for buffering the set of records to be processed; it specifies the size limit (number of records) and total byte count.
++ **IFilter**: IFilter defines a method for excluding irrelevant records from the processing.
++ **IBuffer**: IBuffer defines a system for batching the set of records to be processed. The application can specify three thresholds: number of records, total byte count, and time. When one of these thresholds is crossed, the buffer is flushed and the data is emitted to the destination.
 + **IEmitter**: Defines a method that makes client calls to other AWS services and persists the records stored in the buffer. The records can also be sent to another Amazon Kinesis stream.
 
 Each connector depends on the implementation of KinesisConnectorRecordProcessor to manage the pipeline. The KinesisConnectorRecordProcessor class implements the IRecordProcessor interface in the [Amazon Kinesis Client Library](https://github.com/awslabs/amazon-kinesis-client/).
@@ -73,6 +74,12 @@ To run a sample, complete these steps:
 	+ **Note:** In the samples, [KinesisConnectorExecutor](https://github.com/awslabs/amazon-kinesis-connectors/blob/master/src/main/samples/KinesisConnectorExecutor.java) uses the [DefaultAWSCredentialsProviderChain](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html), which looks for credentials supplied by environment variables, system properties, or IAM role on Amazon EC2. If you prefer to specify your AWS credentials via a properties file on the classpath, edit the sample code to use [ClasspathPropertiesFileCredentialsProvider](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/ClasspathPropertiesFileCredentialsProvider.html) instead.
 2. Confirm that the required AWS resources exist, or set the flags in the *.properties file to indicate that resources should be created when the sample is run.
 3. Within the sample folder, execute **ant run**.
+
+## Release Notes
+### Release 1.1 (June 30, 2014)
++ Added time threshold to IBuffer 
++ Added region name support
+
 
 ## Related Resources
 

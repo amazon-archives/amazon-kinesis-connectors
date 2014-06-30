@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import samples.utils.KinesisUtils;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.kinesis.AmazonKinesisClient;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.model.PutRecordRequest;
@@ -55,7 +56,10 @@ public class StreamSource implements Runnable {
         this.config = config;
         this.inputFile = inputFile;
         kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
-        kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
+        if (config.KINESIS_ENDPOINT != null) {
+            kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
+        }
         KinesisUtils.createAndWaitForStreamToBecomeAvailable(kinesisClient, config.KINESIS_INPUT_STREAM, 2);
     }
 

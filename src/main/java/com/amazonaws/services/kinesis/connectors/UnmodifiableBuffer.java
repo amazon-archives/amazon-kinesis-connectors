@@ -51,6 +51,11 @@ public class UnmodifiableBuffer<T> implements IBuffer<T> {
     public long getNumRecordsToBuffer() {
         return buf.getNumRecordsToBuffer();
     }
+    
+    @Override
+    public long getMillisecondsToBuffer(){
+        return buf.getMillisecondsToBuffer();
+    }
 
     @Override
     public boolean shouldFlush() {

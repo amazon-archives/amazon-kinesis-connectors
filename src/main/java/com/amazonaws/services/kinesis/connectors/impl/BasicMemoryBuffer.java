@@ -34,20 +34,26 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
 
     private final long bytesPerFlush;
     private final long numMessagesToBuffer;
+    private final long millisecondsToBuffer;
+    
     private final List<T> buffer;
     private final AtomicLong byteCount;
 
     private String firstSequenceNumber;
     private String lastSequenceNumber;
+    
+    private long previousFlushTimeMillisecond;
 
     private final Set<String> recordsInBuffer;
 
     public BasicMemoryBuffer(KinesisConnectorConfiguration configuration, List<T> buffer) {
         bytesPerFlush = configuration.BUFFER_BYTE_SIZE_LIMIT;
         numMessagesToBuffer = configuration.BUFFER_RECORD_COUNT_LIMIT;
+        millisecondsToBuffer = configuration.BUFFER_MILLISECONDS_LIMIT;
         this.buffer = buffer;
         byteCount = new AtomicLong();
         recordsInBuffer = new HashSet<String>();
+        previousFlushTimeMillisecond = getCurrentTimeMilliseconds();
     }
 
     public BasicMemoryBuffer(KinesisConnectorConfiguration configuration) {
@@ -62,6 +68,11 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
     @Override
     public long getNumRecordsToBuffer() {
         return numMessagesToBuffer;
+    }
+    
+    @Override
+    public long getMillisecondsToBuffer(){
+        return millisecondsToBuffer;
     }
 
     @Override
@@ -82,6 +93,7 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
         buffer.clear();
         byteCount.set(0);
         recordsInBuffer.clear();
+        previousFlushTimeMillisecond = getCurrentTimeMilliseconds();
     }
 
     @Override
@@ -103,7 +115,11 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
      */
     @Override
     public boolean shouldFlush() {
-        return (buffer.size() > getNumRecordsToBuffer()) || (byteCount.get() > getBytesToBuffer());
+        long timelapseMillisecond = getCurrentTimeMilliseconds() - previousFlushTimeMillisecond;
+        return (! buffer.isEmpty()) 
+                && ((buffer.size() >= getNumRecordsToBuffer()) 
+                || (byteCount.get() >= getBytesToBuffer())
+                || (timelapseMillisecond >= getMillisecondsToBuffer()));
     }
 
     @Override
@@ -111,4 +127,9 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
         return buffer;
     }
 
+    // This method has protected access for unit testing purposes. 
+    protected long getCurrentTimeMilliseconds(){
+        return System.currentTimeMillis();
+    }
+    
 }

@@ -4,25 +4,27 @@
      Please include PostgreSQL driver in the classpath.
      -->
 <project name="Amazon Kinesis Connector to Redshift Manifest Sample" default="run" basedir="../../">
-	<path id="samples.classpath">
-		<fileset dir="${basedir}/../aws-java-sdk-1.6.9/third-party" includes="**/*.jar" />
-		<fileset dir="${basedir}/../aws-java-sdk-1.6.9/lib" includes="**/*.jar" />
-		<fileset dir="${basedir}/../KinesisClientLibrary/lib" includes="**/*.jar" />
-		<fileset dir="${basedir}/lib" includes="**/*.jar" />
-		<fileset dir="${basedir}/samples" includes="**/*.class" />
-		<pathelement location="." />
-		<pathelement location="${basedir}/samples" />
-		<pathelement location="${basedir}/samples/redshiftmanifest" />
-	</path>
-
-	<target name="clean">
-		<delete>
-			<fileset dir="." includes="**/*.class" />
-		</delete>
-	</target>
-
-	<target name="run">
-		<javac srcdir="." destdir="." classpathref="samples.classpath" />
-		<java classname="samples.redshiftmanifest.RedshiftManifestExecutor" classpathref="samples.classpath" fork="true" />
-	</target>
+    <path id="samples.classpath">
+        <fileset dir="${basedir}/../aws-java-sdk-1.6.9/third-party" includes="**/*.jar" />
+        <fileset dir="${basedir}/../aws-java-sdk-1.6.9/lib" includes="**/*.jar" />
+        <fileset dir="${basedir}/../KinesisClientLibrary/lib" includes="**/*.jar" />
+        <fileset dir="${basedir}/build" includes="**/*.class" />
+        <fileset dir="${basedir}/samples" includes="**/*.class" />
+        <pathelement location="." />
+        <pathelement location="${basedir}/samples" />
+        <pathelement location="${basedir}/samples/redshiftmanifest" />
+    </path>
+    
+    <target name="clean">
+        <delete includeEmptyDirs="true" failOnError="false">
+            <fileset dir="." includes="**/*.class" />
+            <fileset dir="${basedir}/build"/>
+        </delete>
+    </target>
+    
+    <target name="run">
+        <mkdir dir="${basedir}/build"/>
+        <javac srcdir="${basedir}/java" destdir="${basedir}/build" classpathref="samples.classpath" />
+        <java classname="samples.redshiftmanifest.RedshiftManifestExecutor" classpathref="samples.classpath" fork="true" />
+    </target>
 </project>

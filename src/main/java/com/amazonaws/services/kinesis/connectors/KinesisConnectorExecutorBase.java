@@ -38,7 +38,7 @@ public abstract class KinesisConnectorExecutorBase<T,U> implements Runnable {
                         .withFailoverTimeMillis(kinesisConnectorConfiguration.FAILOVER_TIME)
                         .withMaxRecords(kinesisConnectorConfiguration.MAX_RECORDS)
                         .withIdleTimeBetweenReadsInMillis(kinesisConnectorConfiguration.IDLE_TIME_BETWEEN_READS)
-                        .withCallProcessRecordsEvenForEmptyRecordList(kinesisConnectorConfiguration.CALL_PROCESS_RECORDS_EVEN_FOR_EMPTY_LIST)
+                        .withCallProcessRecordsEvenForEmptyRecordList(KinesisConnectorConfiguration.DEFAULT_CALL_PROCESS_RECORDS_EVEN_FOR_EMPTY_LIST)
                         .withCleanupLeasesUponShardCompletion(kinesisConnectorConfiguration.CLEANUP_TERMINATED_SHARDS_BEFORE_EXPIRY)
                         .withParentShardPollIntervalMillis(kinesisConnectorConfiguration.PARENT_SHARD_POLL_INTERVAL)
                         .withShardSyncIntervalMillis(kinesisConnectorConfiguration.SHARD_SYNC_INTERVAL)
@@ -46,8 +46,17 @@ public abstract class KinesisConnectorExecutorBase<T,U> implements Runnable {
                         .withMetricsBufferTimeMillis(kinesisConnectorConfiguration.CLOUDWATCH_BUFFER_TIME)
                         .withMetricsMaxQueueSize(kinesisConnectorConfiguration.CLOUDWATCH_MAX_QUEUE_SIZE)
                         .withUserAgent(kinesisConnectorConfiguration.APP_NAME + ","
-                                + KinesisConnectorConfiguration.KINESIS_CONNECTOR_USER_AGENT);
+                                + KinesisConnectorConfiguration.KINESIS_CONNECTOR_USER_AGENT)
+                        .withRegionName(kinesisConnectorConfiguration.REGION_NAME);
 
+        if (!kinesisConnectorConfiguration.CALL_PROCESS_RECORDS_EVEN_FOR_EMPTY_LIST) {
+            LOG.warn("The false value of callProcessRecordsEvenForEmptyList will be ignored. It must be set to true for the bufferTimeMillisecondsLimit to work correctly.");
+        }
+        
+        if (kinesisConnectorConfiguration.IDLE_TIME_BETWEEN_READS > kinesisConnectorConfiguration.BUFFER_MILLISECONDS_LIMIT) {
+            LOG.warn("idleTimeBetweenReads is greater than bufferTimeMillisecondsLimit. For best results, ensure that bufferTimeMillisecondsLimit is more than or equal to idleTimeBetweenReads ");
+        }
+        
         // If a metrics factory was specified, use it.
         if (metricFactory != null) {
             worker =
