@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -55,8 +56,7 @@ public class RedshiftBasicEmitter extends S3Emitter {
     private final String redshiftURL;
     private final char redshiftDelimiter;
     private final Properties loginProperties;
-    private final String accessKey;
-    private final String secretKey;
+    private final AWSCredentialsProvider credentialsProvider;
 
     public RedshiftBasicEmitter(KinesisConnectorConfiguration configuration) {
         super(configuration);
@@ -67,8 +67,7 @@ public class RedshiftBasicEmitter extends S3Emitter {
         loginProperties = new Properties();
         loginProperties.setProperty("user", configuration.REDSHIFT_USERNAME);
         loginProperties.setProperty("password", configuration.REDSHIFT_PASSWORD);
-        accessKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSAccessKeyId();
-        secretKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSSecretKey();
+        credentialsProvider = configuration.AWS_CREDENTIALS_PROVIDER;
     }
 
     @Override
@@ -115,8 +114,10 @@ public class RedshiftBasicEmitter extends S3Emitter {
         StringBuilder exec = new StringBuilder();
         exec.append("COPY " + redshiftTable + " ");
         exec.append("FROM 's3://" + s3bucket + "/" + s3File + "' ");
-        exec.append("CREDENTIALS 'aws_access_key_id=" + accessKey);
-        exec.append(";aws_secret_access_key=" + secretKey + "' ");
+        exec.append("CREDENTIALS '");
+        exec.append(CredentialsUtil.buildCredential(credentialsProvider));
+        exec.append("' ");
+
         exec.append("DELIMITER '" + redshiftDelimiter + "'");
         exec.append(";");
         return exec.toString();

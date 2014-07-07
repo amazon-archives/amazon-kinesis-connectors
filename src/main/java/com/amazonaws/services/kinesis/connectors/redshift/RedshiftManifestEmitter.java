@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -71,8 +72,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     private final String fileTable;
     private final String fileKeyColumn;
     private final char dataDelimiter;
-    private final String accessKey;
-    private final String secretKey;
+    private final AWSCredentialsProvider credentialsProvider;
     private final String s3Endpoint;
     private final AmazonS3Client s3Client;
     private final boolean copyMandatory;
@@ -91,8 +91,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
         if (s3Endpoint != null) {
             s3Client.setEndpoint(s3Endpoint);
         }
-        accessKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSAccessKeyId();
-        secretKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSSecretKey();
+        credentialsProvider = configuration.AWS_CREDENTIALS_PROVIDER;
         loginProps = new Properties();
         loginProps.setProperty("user", configuration.REDSHIFT_USERNAME);
         loginProps.setProperty("password", configuration.REDSHIFT_PASSWORD);
@@ -274,9 +273,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
         redshiftCopy.append("COPY " + dataTable + " ");
         redshiftCopy.append("FROM 's3://" + s3Bucket + "/" + manifestFile + "' ");
         redshiftCopy.append("CREDENTIALS '");
-        redshiftCopy.append("aws_access_key_id=" + accessKey);
-        redshiftCopy.append(";");
-        redshiftCopy.append("aws_secret_access_key=" + secretKey);
+        redshiftCopy.append(CredentialsUtil.buildCredential(credentialsProvider));
         redshiftCopy.append("' ");
         redshiftCopy.append("DELIMITER '" + dataDelimiter + "' ");
         redshiftCopy.append("MANIFEST");
