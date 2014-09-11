@@ -42,8 +42,8 @@ The library includes implementations for use with [Amazon DynamoDB][aws-dynamodb
 
 ### kinesis.connectors.elasticsearch
 
-+ ** KinesisMessageModelElasticsearchTransformer**: This class provides an implementation for fromClass by transforming the record into JSON format and setting the index, type, and id to use for Elasticsearch.
-+ ** BatchedKinesisMessageModelElasticsearchTransformer**: This class extends KinesisMessageModelElasticsearchTransformer. If you batch events before putting data into Kinesis, this class will help you unpack the events before loading them into Elasticsearch.
++ **KinesisMessageModelElasticsearchTransformer**: This class provides an implementation for fromClass by transforming the record into JSON format and setting the index, type, and id to use for Elasticsearch.
++ **BatchedKinesisMessageModelElasticsearchTransformer**: This class extends KinesisMessageModelElasticsearchTransformer. If you batch events before putting data into Kinesis, this class will help you unpack the events before loading them into Elasticsearch.
 
  
 ## Configuration
