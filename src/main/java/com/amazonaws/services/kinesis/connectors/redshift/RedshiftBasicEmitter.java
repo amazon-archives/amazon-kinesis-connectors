@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -32,21 +32,20 @@ import com.amazonaws.services.kinesis.connectors.UnmodifiableBuffer;
 import com.amazonaws.services.kinesis.connectors.s3.S3Emitter;
 
 /**
- * This class is an implementation of IEmitter that emits records into Redshift one by one. It
- * utilizes the Redshift copy command on each file by first inserting records into S3 and then
- * performing the Redshift copy command. S3 insertion is done by extending the S3 emitter.
+ * This class is an implementation of IEmitter that emits records into Amazon Redshift one by one. It
+ * utilizes the Amazon Redshift copy command on each file by first inserting records into Amazon S3 and then
+ * performing the Amazon Redshift copy command. Amazon S3 insertion is done by extending the Amazon S3 emitter.
  * <p>
- * * This class requires the configuration of an S3 bucket and endpoint, as well as the following
- * Redshift items:
+ * * This class requires the configuration of an Amazon S3 bucket and endpoint, as well as the following Amazon Redshift
+ * items:
  * <ul>
  * <li>Redshift URL</li>
  * <li>username and password</li>
  * <li>data table and key column (data table stores items from the manifest copy)</li>
- * <li>file table and key column (file table is used to store file names to prevent duplicate
- * entries)</li>
+ * <li>file table and key column (file table is used to store file names to prevent duplicate entries)</li>
  * <li>the delimiter used for string parsing when inserting entries into Redshift</li>
  * <br>
- * NOTE: The S3 bucket and the Redshift cluster need to be in the same region.
+ * NOTE: The Amazon S3 bucket and the Amazon Redshift cluster need to be in the same region.
  */
 public class RedshiftBasicEmitter extends S3Emitter {
     private static final Log LOG = LogFactory.getLog(RedshiftBasicEmitter.class);
@@ -83,7 +82,7 @@ public class RedshiftBasicEmitter extends S3Emitter {
             String s3File = getS3FileName(buffer.getFirstSequenceNumber(), buffer.getLastSequenceNumber());
             executeStatement(generateCopyStatement(s3File), conn);
             LOG.info("Successfully copied " + getNumberOfCopiedRecords(conn)
-                    + " records to Redshift from file s3://" + s3Bucket + "/" + s3File);
+                    + " records to Amazon Redshift from file s3://" + s3Bucket + "/" + s3File);
             closeConnection(conn);
             return Collections.emptyList();
         } catch (IOException | SQLException e) {
@@ -111,7 +110,7 @@ public class RedshiftBasicEmitter extends S3Emitter {
         }
     }
 
-    private String generateCopyStatement(String s3File) {
+    protected String generateCopyStatement(String s3File) {
         StringBuilder exec = new StringBuilder();
         exec.append("COPY " + redshiftTable + " ");
         exec.append("FROM 's3://" + s3bucket + "/" + s3File + "' ");

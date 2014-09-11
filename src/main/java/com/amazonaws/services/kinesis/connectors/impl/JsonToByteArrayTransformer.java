@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * The JsonToByteArrayTransformer defines a BasicJsonTransformer with byte array for its output
- * type. This allows for data to be sent to S3 or a Kinesis stream.
+ * type. This allows for data to be sent to Amazon S3 or an Amazon Kinesis stream.
  */
 public class JsonToByteArrayTransformer<T> extends BasicJsonTransformer<T, byte[]> {
     private static final Log LOG = LogFactory.getLog(JsonToByteArrayTransformer.class);

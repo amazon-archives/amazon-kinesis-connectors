@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import samples.KinesisMessageModel;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorRecordProcessorFactory;
 
 /**
- * The Executor for the basic Redshift emitter sample.
+ * The Executor for the basic Amazon Redshift emitter sample.
  */
 public class RedshiftBasicExecutor extends KinesisConnectorExecutor<KinesisMessageModel, byte[]> {
     private static final String CONFIG_FILE = "RedshiftBasicSample.properties";
 
     /**
      * Creates a new RedshiftBasicExecutor.
+     * 
      * @param configFile The name of the configuration file to look for on the classpath
      */
     public RedshiftBasicExecutor(String configFile) {
@@ -34,12 +35,14 @@ public class RedshiftBasicExecutor extends KinesisConnectorExecutor<KinesisMessa
     }
 
     @Override
-    public KinesisConnectorRecordProcessorFactory<KinesisMessageModel, byte[]> getKinesisConnectorRecordProcessorFactory() {
+    public KinesisConnectorRecordProcessorFactory<KinesisMessageModel, byte[]>
+            getKinesisConnectorRecordProcessorFactory() {
         return new KinesisConnectorRecordProcessorFactory<>(new RedshiftBasicPipeline(), config);
     }
 
     /**
      * Main method starts and runs the RedshiftBasicExecutor.
+     * 
      * @param args
      */
     public static void main(String[] args) {
@@ -48,8 +51,7 @@ public class RedshiftBasicExecutor extends KinesisConnectorExecutor<KinesisMessa
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Could not load PostgreSQL driver");
         }
-        KinesisConnectorExecutor<KinesisMessageModel, byte[]> redshiftExecutor = new RedshiftBasicExecutor(
-                CONFIG_FILE);
+        KinesisConnectorExecutor<KinesisMessageModel, byte[]> redshiftExecutor = new RedshiftBasicExecutor(CONFIG_FILE);
         redshiftExecutor.run();
     }
 }

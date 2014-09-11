@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -38,25 +38,29 @@ public class RedshiftUtils {
     private static Log LOG = LogFactory.getLog(RedshiftUtils.class);
 
     /**
-     * Creates a Redshift cluster if it does not exist and waits for it to become active
+     * Creates an Amazon Redshift cluster if it does not exist and waits for it to become active
      * 
      * @param client
-     *            The {@link AmazonRedshiftClient} with read and write permissions
+     *        The {@link AmazonRedshiftClient} with read and write permissions
      * @param clusterIdentifier
-     *            The unique identifier of the Redshift cluster to create
+     *        The unique identifier of the Amazon Redshift cluster to create
      * @param databaseName
-     *            The database name associated with the Redshift cluster
+     *        The database name associated with the Amazon Redshift cluster
      * @param masterUsername
-     *            The master username for the Redshift database
+     *        The master username for the Amazon Redshift database
      * @param masterUserPassword
-     *            The master password for the Redshift database
+     *        The master password for the Amazon Redshift database
      * @param clusterType
-     *            dw.hs1.xlarge or dw.hs1.8xlarge
+     *        dw.hs1.xlarge or dw.hs1.8xlarge
      * @param numberOfNodes
-     *            The number of nodes for the Redshift cluster
+     *        The number of nodes for the Amazon Redshift cluster
      */
-    public static void createCluster(AmazonRedshiftClient client, String clusterIdentifier,
-            String databaseName, String masterUsername, String masterUserPassword, String clusterType,
+    public static void createCluster(AmazonRedshiftClient client,
+            String clusterIdentifier,
+            String databaseName,
+            String masterUsername,
+            String masterUserPassword,
+            String clusterType,
             int numberOfNodes) {
         if (clusterExists(client, clusterIdentifier)) {
             LOG.info("Cluster " + clusterIdentifier + " is available");
@@ -84,13 +88,13 @@ public class RedshiftUtils {
     }
 
     /**
-     * Gets the JDBC URL associated with an active Redshift cluster.
+     * Gets the JDBC URL associated with an active Amazon Redshift cluster.
      * 
      * @param client
-     *            The {@link AmazonRedshiftClient} with read permissions
+     *        The {@link AmazonRedshiftClient} with read permissions
      * @param clusterIdentifier
-     *            The unique Redshift cluster identifier
-     * @return JDBC URL for the Redshift cluster
+     *        The unique Amazon Redshift cluster identifier
+     * @return JDBC URL for the Amazon Redshift cluster
      */
     public static String getClusterURL(AmazonRedshiftClient client, String clusterIdentifier) {
         DescribeClustersRequest describeClustersRequest = new DescribeClustersRequest();
@@ -104,13 +108,13 @@ public class RedshiftUtils {
     }
 
     /**
-     * Helper method to convert a Redshift {@link Endpoint} and database name to JDBC connection
+     * Helper method to convert an Amazon Redshift {@link Endpoint} and database name to JDBC connection
      * String
      * 
      * @param endpoint
-     *            The Redshit Endpoint to convert to connection String
+     *        The Redshit Endpoint to convert to connection String
      * @param databaseName
-     *            The database name for the Redshift cluster
+     *        The database name for the Amazon Redshift cluster
      * @return The JDBC connection String associated with the Endpoint and database name
      */
     private static String toJDBC(Endpoint endpoint, String databaseName) {
@@ -123,16 +127,17 @@ public class RedshiftUtils {
     }
 
     /**
-     * Delete the Redshift cluster if it exists
+     * Delete the Amazon Redshift cluster if it exists
      * 
      * @param client
-     *            The {@link AmazonRedshiftClient} with read and write permissions
+     *        The {@link AmazonRedshiftClient} with read and write permissions
      * @param clusterIdentifier
-     *            The Redshift cluster delete
+     *        The Amazon Redshift cluster delete
      * @param skipFinalClusterSnapshot
-     *            Should Redshift skip the final cluster snapshot?
+     *        Should Amazon Redshift skip the final cluster snapshot?
      */
-    public static void deleteCluster(AmazonRedshiftClient client, String clusterIdentifier,
+    public static void deleteCluster(AmazonRedshiftClient client,
+            String clusterIdentifier,
             boolean skipFinalClusterSnapshot) {
         if (clusterExists(client, clusterIdentifier)) {
             DeleteClusterRequest deleteClusterRequest = new DeleteClusterRequest();
@@ -140,18 +145,18 @@ public class RedshiftUtils {
             deleteClusterRequest.setSkipFinalClusterSnapshot(skipFinalClusterSnapshot);
             client.deleteCluster(deleteClusterRequest);
         } else {
-            LOG.warn("Redshift cluster " + clusterIdentifier + " does not exist");
+            LOG.warn("Amazon Redshift cluster " + clusterIdentifier + " does not exist");
         }
     }
 
     /**
-     * Helper method to determine if a Redshift cluster exists
+     * Helper method to determine if an Amazon Redshift cluster exists
      * 
      * @param client
-     *            The {@link AmazonRedshiftClient} with read permissions
+     *        The {@link AmazonRedshiftClient} with read permissions
      * @param clusterIdentifier
-     *            The Redshift cluster to check
-     * @return true if the Redshift cluster exists, otherwise return false
+     *        The Amazon Redshift cluster to check
+     * @return true if the Amazon Redshift cluster exists, otherwise return false
      */
     private static boolean clusterExists(AmazonRedshiftClient client, String clusterIdentifier) {
         DescribeClustersRequest describeClustersRequest = new DescribeClustersRequest();
@@ -166,13 +171,13 @@ public class RedshiftUtils {
     }
 
     /**
-     * Helper method to determine the Redshift cluster state
+     * Helper method to determine the Amazon Redshift cluster state
      * 
      * @param client
-     *            The {@link AmazonRedshiftClient} with read permissions
+     *        The {@link AmazonRedshiftClient} with read permissions
      * @param clusterIdentifier
-     *            The Redshift cluster to get the state of
-     * @return The String representation of the Redshift cluster state
+     *        The Amazon Redshift cluster to get the state of
+     * @return The String representation of the Amazon Redshift cluster state
      */
     public static String clusterState(AmazonRedshiftClient client, String clusterIdentifier) {
         DescribeClustersRequest describeClustersRequest = new DescribeClustersRequest();
@@ -186,21 +191,23 @@ public class RedshiftUtils {
     }
 
     /**
-     * Helper method to create a Redshift table
+     * Helper method to create a Amazon Redshift table
      * 
      * @param redshiftURL
-     *            The JDBC URL of the Redshift database
+     *        The JDBC URL of the Amazon Redshift database
      * @param loginProperties
-     *            A properties file containing the authentication credentials for the database
+     *        A properties file containing the authentication credentials for the database
      * @param tableName
-     *            The table to create
+     *        The table to create
      * @param fields
-     *            A list of column specifications that will be comma separated in the create table
-     *            statement
+     *        A list of column specifications that will be comma separated in the create table
+     *        statement
      * @throws SQLException
-     *             Table creation failed
+     *         Table creation failed
      */
-    public static void createRedshiftTable(String redshiftURL, Properties loginProperties, String tableName,
+    public static void createRedshiftTable(String redshiftURL,
+            Properties loginProperties,
+            String tableName,
             List<String> fields) throws SQLException {
         Connection conn = DriverManager.getConnection(redshiftURL, loginProperties);
         Statement stmt = conn.createStatement();
@@ -229,14 +236,14 @@ public class RedshiftUtils {
     }
 
     /**
-     * Helper method to determine if a table exists in the Redshift database
+     * Helper method to determine if a table exists in the Amazon Redshift database
      * 
      * @param loginProperties
-     *            A properties file containing the authentication credentials for the database
+     *        A properties file containing the authentication credentials for the database
      * @param redshiftURL
-     *            The JDBC URL of the Redshift database
+     *        The JDBC URL of the Amazon Redshift database
      * @param tableName
-     *            The table to check existence of
+     *        The table to check existence of
      * @return true if connection to the database is successful and the table exists, otherwise
      *         false
      */

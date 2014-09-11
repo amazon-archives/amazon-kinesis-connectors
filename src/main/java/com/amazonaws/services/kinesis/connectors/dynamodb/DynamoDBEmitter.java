@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -39,10 +39,10 @@ import com.amazonaws.services.kinesis.connectors.UnmodifiableBuffer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
 
 /**
- * This class is used to store records from a stream in a DynamoDB table. It requires the use of a
+ * This class is used to store records from a stream in an Amazon DynamoDB table. It requires the use of a
  * DynamoDBTransformer, which is able to transform records into a format that can be sent to
- * DynamoDB. A DynamoDB client is used to perform batch requests on the contents of a buffer when
- * emitting. This class requires the configuration of a DynamoDB endpoint and table name.
+ * Amazon DynamoDB. An Amazon DynamoDB client is used to perform batch requests on the contents of a buffer when
+ * emitting. This class requires the configuration of an Amazon DynamoDB endpoint and table name.
  */
 public class DynamoDBEmitter implements IEmitter<Map<String, AttributeValue>> {
     private static final Log LOG = LogFactory.getLog(DynamoDBEmitter.class);
@@ -51,7 +51,7 @@ public class DynamoDBEmitter implements IEmitter<Map<String, AttributeValue>> {
     protected final AmazonDynamoDBClient dynamoDBClient;
 
     public DynamoDBEmitter(KinesisConnectorConfiguration configuration) {
-        // DynamoDB Config
+        // Amazon DynamoDB Config
         this.dynamoDBEndpoint = configuration.DYNAMODB_ENDPOINT;
         this.dynamoDBTableName = configuration.DYNAMODB_DATA_TABLE_NAME;
         // Client
@@ -61,14 +61,15 @@ public class DynamoDBEmitter implements IEmitter<Map<String, AttributeValue>> {
 
     @Override
     public List<Map<String, AttributeValue>> emit(final UnmodifiableBuffer<Map<String, AttributeValue>> buffer)
-            throws IOException {
+        throws IOException {
         // Map of WriteRequests to records for reference
-        Map<WriteRequest, Map<String, AttributeValue>> requestMap = new HashMap<WriteRequest, Map<String, AttributeValue>>();
+        Map<WriteRequest, Map<String, AttributeValue>> requestMap =
+                new HashMap<WriteRequest, Map<String, AttributeValue>>();
         List<Map<String, AttributeValue>> unproc = new ArrayList<Map<String, AttributeValue>>();
         // Build a batch request with a record list
         List<WriteRequest> rList = new ArrayList<WriteRequest>();
         List<Map<String, AttributeValue>> resultList;
-        // DynamoDB only allows one operation per item in a bulk insertion (no duplicate items)
+        // Amazon DynamoDB only allows one operation per item in a bulk insertion (no duplicate items)
         Set<Map<String, AttributeValue>> uniqueItems = uniqueItems(buffer.getRecords());
         for (Map<String, AttributeValue> item : uniqueItems) {
             WriteRequest wr = new WriteRequest().withPutRequest(new PutRequest().withItem(item));
@@ -85,8 +86,7 @@ public class DynamoDBEmitter implements IEmitter<Map<String, AttributeValue>> {
         }
         resultList = performBatchRequest(rList, requestMap);
         unproc.addAll(resultList);
-        LOG.info("Successfully emitted " + (buffer.getRecords().size() - unproc.size())
-                + " records into DynamoDB.");
+        LOG.info("Successfully emitted " + (buffer.getRecords().size() - unproc.size()) + " records into DynamoDB.");
         return unproc;
     }
 
@@ -98,17 +98,17 @@ public class DynamoDBEmitter implements IEmitter<Map<String, AttributeValue>> {
     }
 
     /**
-     * This method performs a batch request into DynamoDB and returns records that were
+     * This method performs a batch request into Amazon DynamoDB and returns records that were
      * unsuccessfully processed by the batch request. Throws IOException if the client calls to
-     * DynamoDB encounter an exception.
+     * Amazon DynamoDB encounter an exception.
      * 
      * @param rList
-     *            list of WriteRequests to batch
+     *        list of WriteRequests to batch
      * @param requestMap
-     *            map of WriteRequests to records
+     *        map of WriteRequests to records
      * @return records that did not get put in the table by the batch request
      * @throws IOException
-     *             if DynamoDB client encounters an exception
+     *         if the Amazon DynamoDB client encounters an exception
      */
     private List<Map<String, AttributeValue>> performBatchRequest(List<WriteRequest> rList,
             Map<WriteRequest, Map<String, AttributeValue>> requestMap) throws IOException {
@@ -120,13 +120,12 @@ public class DynamoDBEmitter implements IEmitter<Map<String, AttributeValue>> {
         }
         requestItems.put(dynamoDBTableName, rList);
         BatchWriteItemResult result;
-        BatchWriteItemRequest batchWriteItemRequest = new BatchWriteItemRequest()
-                .withRequestItems(requestItems);
+        BatchWriteItemRequest batchWriteItemRequest = new BatchWriteItemRequest().withRequestItems(requestItems);
         try {
             result = dynamoDBClient.batchWriteItem(batchWriteItemRequest);
             return unproccessedItems(result, requestMap);
         } catch (AmazonClientException e) {
-            String message = "DynamoDB Client could not perform batch request";
+            String message = "Amazon DynamoDB Client could not perform batch request";
             LOG.error(message, e);
             throw new IOException(message, e);
         } catch (Exception e) {
@@ -152,10 +151,10 @@ public class DynamoDBEmitter implements IEmitter<Map<String, AttributeValue>> {
 
     /**
      * This helper method is used to dedupe a list of items. Use this method to dedupe the contents
-     * of a buffer before performing a DynamoDB batch write request.
+     * of a buffer before performing an Amazon DynamoDB batch write request.
      * 
      * @param items
-     *            a list of Map<String,AttributeValue> items
+     *        a list of Map<String,AttributeValue> items
      * @return the subset of unique items
      */
     public Set<Map<String, AttributeValue>> uniqueItems(List<Map<String, AttributeValue>> items) {

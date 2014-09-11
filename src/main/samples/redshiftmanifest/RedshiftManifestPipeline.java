@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import com.amazonaws.services.kinesis.connectors.interfaces.ITransformer;
 import com.amazonaws.services.kinesis.connectors.redshift.RedshiftManifestEmitter;
 
 /**
- * The Pipeline used by the {@link RedshiftManifestExecutor} in the Redshift manifest sample.
- * Processes S3 file name records in String format. Uses:
+ * The Pipeline used by the {@link RedshiftManifestExecutor} in the Amazon Redshift manifest sample.
+ * Processes Amazon S3 file name records in String format. Uses:
  * <ul>
  * <li>{@link RedshiftManifestEmitter}</li>
  * <li>{@link BasicMemoryBuffer}</li>

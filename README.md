@@ -1,6 +1,6 @@
 # Amazon Kinesis Connector Library
 
-The **Amazon Kinesis Connector Library** helps Java developers integrate [Amazon Kinesis][aws-kinesis] with other AWS services. 	The current version of the library provides connectors for [Amazon DynamoDB][aws-dynamodb], [Amazon Redshift][aws-redshift], and [Amazon S3][aws-s3]. The library also includes [sample connectors](#samples) of each type, plus Apache Ant build files for running the samples.
+The **Amazon Kinesis Connector Library** helps Java developers integrate [Amazon Kinesis][aws-kinesis] with other AWS and non-AWS services. The current version of the library provides connectors for [Amazon DynamoDB][aws-dynamodb], [Amazon Redshift][aws-redshift], [Amazon S3][aws-s3], [Elasticsearch][Elasticsearch]. The library also includes [sample connectors](#samples) of each type, plus Apache Ant build files for running the samples.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ Each connector depends on the implementation of KinesisConnectorRecordProcessor 
 
 ## Implementation Highlights
 
-The library includes implementations for use with [Amazon DynamoDB][aws-dynamodb], [Amazon Redshift][aws-redshift], and [Amazon S3][aws-s3]. This section provides a few notes about each connector type. For full details, see the [samples](#samples) and the Javadoc.
+The library includes implementations for use with [Amazon DynamoDB][aws-dynamodb], [Amazon Redshift][aws-redshift], [Amazon S3][aws-s3], and [Elasticsearch][Elasticsearch]. This section provides a few notes about each connector type. For full details, see the [samples](#samples) and the Javadoc.
 
 ### kinesis.connectors.dynamodb
 
@@ -40,6 +40,12 @@ The library includes implementations for use with [Amazon DynamoDB][aws-dynamodb
 
 + **S3Emitter**: This class writes the buffer contents to a single file in Amazon S3. The file name is determined by the Amazon Kinesis sequence numbers of the first and last records in the buffer. For more information about sequence numbers, see [Add Data to a Stream](http://docs.aws.amazon.com/kinesis/latest/dev/kinesis-using-api-java.html#kinesis-using-api-java-add-data-to-stream) in the Amazon Kinesis Developer Guide.
 
+### kinesis.connectors.elasticsearch
+
++ ** KinesisMessageModelElasticsearchTransformer**: This class provides an implementation for fromClass by transforming the record into JSON format and setting the index, type, and id to use for Elasticsearch.
++ ** BatchedKinesisMessageModelElasticsearchTransformer**: This class extends KinesisMessageModelElasticsearchTransformer. If you batch events before putting data into Kinesis, this class will help you unpack the events before loading them into Elasticsearch.
+
+ 
 ## Configuration
 
 Set the following variables (common to all connector types) in kinesis.connectors.KinesisConnectorConfiguration:
@@ -79,7 +85,8 @@ To run a sample, complete these steps:
 ### Release 1.1 (June 30, 2014)
 + Added time threshold to IBuffer 
 + Added region name support
-
+### Release 1.1.1 (Sep 11, 2014)
++ Added connector to Elasticsearch 
 
 ## Related Resources
 
@@ -93,7 +100,10 @@ To run a sample, complete these steps:
 
 [Amazon S3 Documentation and Videos](http://aws.amazon.com/documentation/s3/)
 
+[Elasticsearch](http://www.elasticsearch.org/)
+
 [aws-kinesis]: http://aws.amazon.com/kinesis/
 [aws-dynamodb]: http://aws.amazon.com/dynamodb/
 [aws-redshift]: http://aws.amazon.com/redshift/
 [aws-s3]: http://aws.amazon.com/s3/
+[Elasticsearch]: http://www.elasticsearch.org/

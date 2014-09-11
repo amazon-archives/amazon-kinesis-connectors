@@ -19,7 +19,7 @@ import com.amazonaws.services.kinesis.connectors.interfaces.IBuffer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
 import com.amazonaws.services.kinesis.connectors.interfaces.IFilter;
 import com.amazonaws.services.kinesis.connectors.interfaces.IKinesisConnectorPipeline;
-import com.amazonaws.services.kinesis.connectors.interfaces.ITransformer;
+import com.amazonaws.services.kinesis.connectors.interfaces.ITransformerBase;
 
 /**
  * This class is used to generate KinesisConnectorRecordProcessors that operate using the user's
@@ -43,10 +43,10 @@ public class KinesisConnectorRecordProcessorFactory<T, U> implements IRecordProc
         try {
             IBuffer<T> buffer = pipeline.getBuffer(configuration);
             IEmitter<U> emitter = pipeline.getEmitter(configuration);
-            ITransformer<T, U> transformer = pipeline.getTransformer(configuration);
+            ITransformerBase<T, U> transformer = pipeline.getTransformer(configuration);
             IFilter<T> filter = pipeline.getFilter(configuration);
-            KinesisConnectorRecordProcessor<T, U> processor = new KinesisConnectorRecordProcessor<T, U>(
-                    buffer, filter, emitter, transformer, configuration);
+            KinesisConnectorRecordProcessor<T, U> processor =
+                    new KinesisConnectorRecordProcessor<T, U>(buffer, filter, emitter, transformer, configuration);
             return processor;
         } catch (Throwable t) {
             throw new RuntimeException(t);

@@ -15,28 +15,29 @@
 package com.amazonaws.services.kinesis.connectors.interfaces;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import com.amazonaws.services.kinesis.model.Record;
 
 /**
- * ITransformer is used to transform data from a Record (byte array) to the data model class (T) for
- * processing in the application and from the data model class to the output type (U) for the
- * emitter.
+ * ICollectionTransformer is used to transform data from an Amazon Kinesis Record (byte array) to
+ * a collection of the data model class (T) for processing in the application and from the
+ * data model class to the output type (U) for the emitter.
  * 
  * @param <T>
  *        the data type stored in the record
  * @param <U>
  *        the data type to emit
  */
-public interface ITransformer<T, U> extends ITransformerBase<T, U> {
+public interface ICollectionTransformer<T, U> extends ITransformerBase<T, U> {
     /**
-     * Transform record into an object of its original class.
+     * Transform record into a collection of object of their original class.
      * 
      * @param record
      *        raw record from the Amazon Kinesis stream
      * @return data as its original class
      * @throws IOException
-     *         could not convert the record to a T
+     *         could not convert the record to a Collection<T>
      */
-    public T toClass(Record record) throws IOException;
+    public Collection<T> toClass(Record record) throws IOException;
 }

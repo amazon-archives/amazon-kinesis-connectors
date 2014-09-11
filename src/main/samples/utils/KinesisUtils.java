@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -32,92 +32,95 @@ import com.amazonaws.services.kinesis.model.ListStreamsResult;
 import com.amazonaws.services.kinesis.model.ResourceNotFoundException;
 
 /**
- * Utilities to create and delete Kinesis streams.
+ * Utilities to create and delete Amazon Kinesis streams.
  */
 public class KinesisUtils {
 
     private static Log LOG = LogFactory.getLog(KinesisUtils.class);
 
     /**
-     * Creates the Kinesis stream specified by config.KINESIS_INPUT_STREAM
+     * Creates the Amazon Kinesis stream specified by config.KINESIS_INPUT_STREAM
      * 
      * @param config
-     *            The configuration with the specified input stream name and
-     *            {@link AWSCredentialsProvider}
+     *        The configuration with the specified input stream name and {@link AWSCredentialsProvider}
      * @param shardCount
-     *            The shard count to create the stream with
+     *        The shard count to create the stream with
      */
-    public static void createInputStream(KinesisConnectorConfiguration config, int shardCount) {
+    public static void createInputStream(KinesisConnectorConfiguration config) {
         AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
         kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
         if (config.KINESIS_ENDPOINT != null) {
             kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
         }
-        createAndWaitForStreamToBecomeAvailable(kinesisClient, config.KINESIS_INPUT_STREAM, shardCount);
+        createAndWaitForStreamToBecomeAvailable(kinesisClient,
+                config.KINESIS_INPUT_STREAM,
+                config.KINESIS_INPUT_STREAM_SHARD_COUNT);
     }
 
     /**
-     * Creates the Kinesis stream specified by config.KINESIS_OUTPUT_STREAM.
+     * Creates the Amazon Kinesis stream specified by config.KINESIS_OUTPUT_STREAM.
      * 
      * @param config
-     *            The configuration with the specified output stream name and
-     *            {@link AWSCredentialsProvider}
+     *        The configuration with the specified output stream name and {@link AWSCredentialsProvider}
      * @param shardCount
-     *            The shard count to create the stream with
+     *        The shard count to create the stream with
      */
-    public static void createOutputStream(KinesisConnectorConfiguration config, int shardCount) {
+    public static void createOutputStream(KinesisConnectorConfiguration config) {
         AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
         kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
         if (config.KINESIS_ENDPOINT != null) {
             kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
         }
-        createAndWaitForStreamToBecomeAvailable(kinesisClient, config.KINESIS_OUTPUT_STREAM, shardCount);
+        createAndWaitForStreamToBecomeAvailable(kinesisClient,
+                config.KINESIS_OUTPUT_STREAM,
+                config.KINESIS_OUTPUT_STREAM_SHARD_COUNT);
     }
 
     /**
-     * Creates a Kinesis stream if it does not exist and waits for it to become available
+     * Creates an Amazon Kinesis stream if it does not exist and waits for it to become available
      * 
      * @param kinesisClient
-     *            The {@link AmazonKinesisClient} with Kinesis read and write privileges
+     *        The {@link AmazonKinesisClient} with Amazon Kinesis read and write privileges
      * @param streamName
-     *            The Kinesis stream name to create
+     *        The Amazon Kinesis stream name to create
      * @param shardCount
-     *            The shard count to create the stream with
+     *        The shard count to create the stream with
      * @throws IllegalStateException
-     *             Invalid Kinesis stream state
+     *         Invalid Amazon Kinesis stream state
      * @throws IllegalStateException
-     *             Stream does not go active before the timeout
+     *         Stream does not go active before the timeout
      */
     public static void createAndWaitForStreamToBecomeAvailable(AmazonKinesisClient kinesisClient,
-            String streamName, int shardCount) {
+            String streamName,
+            int shardCount) {
         if (streamExists(kinesisClient, streamName)) {
             String state = streamState(kinesisClient, streamName);
             switch (state) {
-            case "DELETING":
-                long startTime = System.currentTimeMillis();
-                long endTime = startTime + 1000 * 120;
-                while (System.currentTimeMillis() < endTime && streamExists(kinesisClient, streamName)) {
-                    try {
-                        LOG.info("...Deleting Stream " + streamName + "...");
-                        Thread.sleep(1000 * 10);
-                    } catch (InterruptedException e) {
+                case "DELETING":
+                    long startTime = System.currentTimeMillis();
+                    long endTime = startTime + 1000 * 120;
+                    while (System.currentTimeMillis() < endTime && streamExists(kinesisClient, streamName)) {
+                        try {
+                            LOG.info("...Deleting Stream " + streamName + "...");
+                            Thread.sleep(1000 * 10);
+                        } catch (InterruptedException e) {
+                        }
                     }
-                }
-                if (streamExists(kinesisClient, streamName)) {
-                    LOG.error("KinesisUtils timed out waiting for stream " + streamName + " to delete");
-                    throw new IllegalStateException("KinesisUtils timed out waiting for stream " + streamName
-                            + " to delete");
-                }
-            case "ACTIVE":
-                LOG.info("Stream " + streamName + " is ACTIVE");
-                return;
-            case "CREATING":
-                break;
-            case "UPDATING":
-                LOG.info("Stream " + streamName + " is UPDATING");
-                return;
-            default:
-                throw new IllegalStateException("Illegal stream state: " + state);
+                    if (streamExists(kinesisClient, streamName)) {
+                        LOG.error("KinesisUtils timed out waiting for stream " + streamName + " to delete");
+                        throw new IllegalStateException("KinesisUtils timed out waiting for stream " + streamName
+                                + " to delete");
+                    }
+                case "ACTIVE":
+                    LOG.info("Stream " + streamName + " is ACTIVE");
+                    return;
+                case "CREATING":
+                    break;
+                case "UPDATING":
+                    LOG.info("Stream " + streamName + " is UPDATING");
+                    return;
+                default:
+                    throw new IllegalStateException("Illegal stream state: " + state);
             }
         } else {
             CreateStreamRequest createStreamRequest = new CreateStreamRequest();
@@ -146,13 +149,13 @@ public class KinesisUtils {
     }
 
     /**
-     * Helper method to determine if a Kinesis stream exists.
+     * Helper method to determine if an Amazon Kinesis stream exists.
      * 
      * @param kinesisClient
-     *            The {@link AmazonKinesisClient} with Kinesis read privileges
+     *        The {@link AmazonKinesisClient} with Amazon Kinesis read privileges
      * @param streamName
-     *            The Kinesis stream to check for
-     * @return true if the Kinesis stream exists, otherwise return false
+     *        The Amazon Kinesis stream to check for
+     * @return true if the Amazon Kinesis stream exists, otherwise return false
      */
     private static boolean streamExists(AmazonKinesisClient kinesisClient, String streamName) {
         DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest();
@@ -166,31 +169,30 @@ public class KinesisUtils {
     }
 
     /**
-     * Return the state of a Kinesis stream.
+     * Return the state of a Amazon Kinesis stream.
      * 
      * @param kinesisClient
-     *            The {@link AmazonKinesisClient} with Kinesis read privileges
+     *        The {@link AmazonKinesisClient} with Amazon Kinesis read privileges
      * @param streamName
-     *            The Kinesis stream to get the state of
+     *        The Amazon Kinesis stream to get the state of
      * @return String representation of the Stream state
      */
     private static String streamState(AmazonKinesisClient kinesisClient, String streamName) {
         DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest();
         describeStreamRequest.setStreamName(streamName);
         try {
-            return kinesisClient.describeStream(describeStreamRequest).getStreamDescription()
-                    .getStreamStatus();
+            return kinesisClient.describeStream(describeStreamRequest).getStreamDescription().getStreamStatus();
         } catch (AmazonServiceException e) {
             return null;
         }
     }
 
     /**
-     * Gets a list of all Kinesis streams
+     * Gets a list of all Amazon Kinesis streams
      * 
      * @param kinesisClient
-     *            The {@link AmazonKinesisClient} with Kinesis read privileges
-     * @return list of Kinesis streams
+     *        The {@link AmazonKinesisClient} with Amazon Kinesis read privileges
+     * @return list of Amazon Kinesis streams
      */
     public static List<String> listAllStreams(AmazonKinesisClient kinesisClient) {
 
@@ -213,7 +215,7 @@ public class KinesisUtils {
      * Deletes the input stream specified by config.KINESIS_INPUT_STREAM
      * 
      * @param config
-     *            The configuration containing the stream name and {@link AWSCredentialsProvider}
+     *        The configuration containing the stream name and {@link AWSCredentialsProvider}
      */
     public static void deleteInputStream(KinesisConnectorConfiguration config) {
         AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
@@ -228,7 +230,7 @@ public class KinesisUtils {
      * Deletes the output stream specified by config.KINESIS_OUTPUT_STREAM
      * 
      * @param config
-     *            The configuration containing the stream name and {@link AWSCredentialsProvider}
+     *        The configuration containing the stream name and {@link AWSCredentialsProvider}
      */
     public static void deleteOutputStream(KinesisConnectorConfiguration config) {
         AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
@@ -240,12 +242,12 @@ public class KinesisUtils {
     }
 
     /**
-     * Deletes a Kinesis stream if it exists.
+     * Deletes an Amazon Kinesis stream if it exists.
      * 
      * @param kinesisClient
-     *            The {@link AmazonKinesisClient} with Kinesis read and write privileges
+     *        The {@link AmazonKinesisClient} with Amazon Kinesis read and write privileges
      * @param streamName
-     *            The Kinesis stream to delete
+     *        The Amazon Kinesis stream to delete
      */
     public static void deleteStream(AmazonKinesisClient kinesisClient, String streamName) {
         if (streamExists(kinesisClient, streamName)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ import com.amazonaws.services.kinesis.connectors.UnmodifiableBuffer;
 import com.amazonaws.services.kinesis.model.PutRecordRequest;
 
 /**
- * This implementaion of IEmitter inserts records into S3 and emits filenames into a separate
- * Kinesis stream. The separate Kinesis stream is to be used by another Kinesis enabled application
- * that utilizes RedshiftManifestEmitters to insert the records into Redshift via a manifest copy.
- * This class requires the configuration of an S3 bucket and endpoint, as well as Kinesis endpoint
+ * This implementaion of IEmitter inserts records into Amazon S3 and emits filenames into a separate
+ * Amazon Kinesis stream. The separate Amazon Kinesis stream is to be used by another Amazon Kinesis enabled application
+ * that utilizes RedshiftManifestEmitters to insert the records into Amazon Redshift via a manifest copy.
+ * This class requires the configuration of an Amazon S3 bucket and endpoint, as well as Amazon Kinesis endpoint
  * and output stream.
  * <p>
  * When the buffer is full, this Emitter:
@@ -41,7 +41,7 @@ import com.amazonaws.services.kinesis.model.PutRecordRequest;
  * <li>Puts the single file name into the manifest stream</li>
  * </ol>
  * <p>
- * NOTE: the S3 bucket and Redshift cluster must be in the same region.
+ * NOTE: the Amazon S3 bucket and Amazon Redshift cluster must be in the same region.
  */
 public class S3ManifestEmitter extends S3Emitter {
     private static final Log LOG = LogFactory.getLog(S3ManifestEmitter.class);
@@ -60,14 +60,14 @@ public class S3ManifestEmitter extends S3Emitter {
         // Store the contents of buffer.getRecords because superclass will
         // clear the buffer on success
         List<byte[]> failed = super.emit(buffer);
-        // calls S3Emitter to write objects to S3
+        // calls S3Emitter to write objects to Amazon S3
         if (!failed.isEmpty()) {
             return buffer.getRecords();
         }
         String s3File = getS3FileName(buffer.getFirstSequenceNumber(), buffer.getLastSequenceNumber());
-        // wrap the name of the S3 file as the record data
+        // wrap the name of the Amazon S3 file as the record data
         ByteBuffer data = ByteBuffer.wrap(s3File.getBytes());
-        // Put the list of file names to the manifest Kinesis stream
+        // Put the list of file names to the manifest Amazon Kinesis stream
         PutRecordRequest putRecordRequest = new PutRecordRequest();
         putRecordRequest.setData(data);
         putRecordRequest.setStreamName(manifestStream);
@@ -77,7 +77,7 @@ public class S3ManifestEmitter extends S3Emitter {
             kinesisClient.putRecord(putRecordRequest);
             LOG.info("S3ManifestEmitter emitted record downstream: " + s3File);
             return Collections.emptyList();
-        } catch (AmazonServiceException e) {
+        } catch (Exception e) {
             LOG.error(e);
             return buffer.getRecords();
         }

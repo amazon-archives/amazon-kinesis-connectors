@@ -19,7 +19,7 @@ package com.amazonaws.services.kinesis.connectors.interfaces;
  * keepRecord() method to decide whether to store a record or discard it.
  * 
  * @param <T>
- *            the data type stored in the record
+ *        the data type stored in the record
  */
 public interface IFilter<T> {
 

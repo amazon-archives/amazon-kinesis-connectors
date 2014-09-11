@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import samples.KinesisMessageModel;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorRecordProcessorFactory;
 
 /**
- * Executor to emit records to S3 files. The number of records per S3 file can be set in the buffer
+ * Executor to emit records to Amazon S3 files. The number of records per Amazon S3 file can be set in the buffer
  * properties.
  */
 public class S3Executor extends KinesisConnectorExecutor<KinesisMessageModel, byte[]> {
@@ -30,14 +30,15 @@ public class S3Executor extends KinesisConnectorExecutor<KinesisMessageModel, by
      * Creates a new S3Executor.
      * 
      * @param configFile
-     *            The name of the configuration file to look for on the classpath
+     *        The name of the configuration file to look for on the classpath
      */
     public S3Executor(String configFile) {
         super(configFile);
     }
 
     @Override
-    public KinesisConnectorRecordProcessorFactory<KinesisMessageModel, byte[]> getKinesisConnectorRecordProcessorFactory() {
+    public KinesisConnectorRecordProcessorFactory<KinesisMessageModel, byte[]>
+            getKinesisConnectorRecordProcessorFactory() {
         return new KinesisConnectorRecordProcessorFactory<KinesisMessageModel, byte[]>(new S3Pipeline(), this.config);
     }
 

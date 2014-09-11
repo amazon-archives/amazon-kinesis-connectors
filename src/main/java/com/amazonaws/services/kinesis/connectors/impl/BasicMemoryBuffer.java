@@ -14,10 +14,8 @@
  */
 package com.amazonaws.services.kinesis.connectors.impl;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
@@ -35,16 +33,14 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
     private final long bytesPerFlush;
     private final long numMessagesToBuffer;
     private final long millisecondsToBuffer;
-    
+
     private final List<T> buffer;
     private final AtomicLong byteCount;
 
     private String firstSequenceNumber;
     private String lastSequenceNumber;
-    
-    private long previousFlushTimeMillisecond;
 
-    private final Set<String> recordsInBuffer;
+    private long previousFlushTimeMillisecond;
 
     public BasicMemoryBuffer(KinesisConnectorConfiguration configuration, List<T> buffer) {
         bytesPerFlush = configuration.BUFFER_BYTE_SIZE_LIMIT;
@@ -52,7 +48,6 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
         millisecondsToBuffer = configuration.BUFFER_MILLISECONDS_LIMIT;
         this.buffer = buffer;
         byteCount = new AtomicLong();
-        recordsInBuffer = new HashSet<String>();
         previousFlushTimeMillisecond = getCurrentTimeMilliseconds();
     }
 
@@ -69,9 +64,9 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
     public long getNumRecordsToBuffer() {
         return numMessagesToBuffer;
     }
-    
+
     @Override
-    public long getMillisecondsToBuffer(){
+    public long getMillisecondsToBuffer() {
         return millisecondsToBuffer;
     }
 
@@ -81,18 +76,14 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
             firstSequenceNumber = sequenceNumber;
         }
         lastSequenceNumber = sequenceNumber;
-        if (!recordsInBuffer.contains(sequenceNumber)) {
-            buffer.add(record);
-            byteCount.addAndGet(recordSize);
-            recordsInBuffer.add(sequenceNumber);
-        }
+        buffer.add(record);
+        byteCount.addAndGet(recordSize);
     }
 
     @Override
     public void clear() {
         buffer.clear();
         byteCount.set(0);
-        recordsInBuffer.clear();
         previousFlushTimeMillisecond = getCurrentTimeMilliseconds();
     }
 
@@ -116,10 +107,8 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
     @Override
     public boolean shouldFlush() {
         long timelapseMillisecond = getCurrentTimeMilliseconds() - previousFlushTimeMillisecond;
-        return (! buffer.isEmpty()) 
-                && ((buffer.size() >= getNumRecordsToBuffer()) 
-                || (byteCount.get() >= getBytesToBuffer())
-                || (timelapseMillisecond >= getMillisecondsToBuffer()));
+        return (!buffer.isEmpty())
+                && ((buffer.size() >= getNumRecordsToBuffer()) || (byteCount.get() >= getBytesToBuffer()) || (timelapseMillisecond >= getMillisecondsToBuffer()));
     }
 
     @Override
@@ -127,9 +116,9 @@ public class BasicMemoryBuffer<T> implements IBuffer<T> {
         return buffer;
     }
 
-    // This method has protected access for unit testing purposes. 
-    protected long getCurrentTimeMilliseconds(){
+    // This method has protected access for unit testing purposes.
+    protected long getCurrentTimeMilliseconds() {
         return System.currentTimeMillis();
     }
-    
+
 }

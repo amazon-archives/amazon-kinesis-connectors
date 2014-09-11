@@ -48,7 +48,7 @@ public interface IKinesisConnectorPipeline<T, U> {
      * @param configuration
      * @return a configured instance of the ITransformer implementation
      */
-    ITransformer<T, U> getTransformer(KinesisConnectorConfiguration configuration);
+    ITransformerBase<T, U> getTransformer(KinesisConnectorConfiguration configuration);
 
     /**
      * Return an instance of the users implementation of IFilter.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,13 +21,20 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.connectors.UnmodifiableBuffer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
@@ -35,34 +42,33 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
 /**
- * This implementation of IEmitter collects filenames from a Kinesis stream that has been started by
- * a S3ManifestEmitter. The RedshiftManifestEmitter processes the list of S3 file names, generates a
- * manifest file and performs a Redshift copy. The Redshift copy is done using transactions to
- * prevent duplication of objects in Redshift. <br>
+ * This implementation of IEmitter collects filenames from an Amazon Kinesis stream that has been started by
+ * a S3ManifestEmitter. The RedshiftManifestEmitter processes the list of Amazon S3 file names, generates a
+ * manifest file and performs an Amazon Redshift copy. The Amazon Redshift copy is done using transactions to
+ * prevent duplication of objects in Amazon Redshift. <br>
  * It follows the following procedure:
  * <ol>
- * <li>Write manifest file to S3</li>
- * <li>Begin Redshift transaction</li>
- * <li>If any files already exist in Redshift, return and checkpoint (this transaction already
- * completed successfully so no need to duplicate)</li>
- * <li>Write file names to Redshift file table</li>
- * <li>Call Redshift copy</li>
- * <li>Commit Redshift Transaction</li>
+ * <li>Write manifest file to Amazon S3</li>
+ * <li>Begin Amazon Redshift transaction</li>
+ * <li>If any files already exist in Amazon Redshift, return and checkpoint (this transaction already completed
+ * successfully so no need to duplicate)</li>
+ * <li>Write file names to Amazon Redshift file table</li>
+ * <li>Call Amazon Redshift copy</li>
+ * <li>Commit Amazon Redshift Transaction</li>
  * </ol>
  * <p>
- * This class requires the configuration of an S3 bucket and endpoint, as well as the following
- * Redshift items:
+ * This class requires the configuration of an Amazon S3 bucket and endpoint, as well as the following Amazon Redshift
+ * items:
  * <ul>
- * <li>Redshift URL</li>
+ * <li>Amazon Redshift URL</li>
  * <li>username and password</li>
  * <li>data table and key column (data table stores items from the manifest copy)</li>
- * <li>file table and key column (file table is used to store file names to prevent duplicate
- * entries)</li>
- * <li>mandatory flag for Redshift copy</li>
- * <li>the delimiter used for string parsing when inserting entries into Redshift</li>
+ * <li>file table and key column (file table is used to store file names to prevent duplicate entries)</li>
+ * <li>mandatory flag for Amazon Redshift copy</li>
+ * <li>the delimiter used for string parsing when inserting entries into Amazon Redshift</li>
  * </ul>
  * <br>
- * NOTE: S3 bucket and Redshift table must be in the same region for Manifest Copy.
+ * NOTE: Amazon S3 bucket and Amazon Redshift table must be in the same region for Manifest Copy.
  */
 public class RedshiftManifestEmitter implements IEmitter<String> {
     private static final Log LOG = LogFactory.getLog(RedshiftManifestEmitter.class);
@@ -71,13 +77,13 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     private final String fileTable;
     private final String fileKeyColumn;
     private final char dataDelimiter;
-    private final String accessKey;
-    private final String secretKey;
+    private final AWSCredentialsProvider credentialsProvider;
     private final String s3Endpoint;
     private final AmazonS3Client s3Client;
     private final boolean copyMandatory;
     private final Properties loginProps;
     private final String redshiftURL;
+    private static final String MANIFEST_PREFIX = "manifests/";
 
     public RedshiftManifestEmitter(KinesisConnectorConfiguration configuration) {
         dataTable = configuration.REDSHIFT_DATA_TABLE;
@@ -91,8 +97,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
         if (s3Endpoint != null) {
             s3Client.setEndpoint(s3Endpoint);
         }
-        accessKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSAccessKeyId();
-        secretKey = configuration.AWS_CREDENTIALS_PROVIDER.getCredentials().getAWSSecretKey();
+        credentialsProvider = configuration.AWS_CREDENTIALS_PROVIDER;
         loginProps = new Properties();
         loginProps.setProperty("user", configuration.REDSHIFT_USERNAME);
         loginProps.setProperty("password", configuration.REDSHIFT_PASSWORD);
@@ -103,43 +108,73 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     public List<String> emit(final UnmodifiableBuffer<String> buffer) throws IOException {
         List<String> records = buffer.getRecords();
         Connection conn = null;
-        writeManifestToS3(records);
+
+        String manifestFileName = getManifestFile(records);
+        // Copy to Amazon Redshift using manifest file
         try {
             conn = DriverManager.getConnection(redshiftURL, loginProps);
             conn.setAutoCommit(false);
-            if (checkForExistingFiles(conn, records)) {
+            List<String> deduplicatedRecords = checkForExistingFiles(conn, records);
+            if (deduplicatedRecords.isEmpty()) {
+                LOG.info("All the files in this set were already copied to Redshift.");
                 // All of these files were already written
-                conn.rollback();
-                // after return, record processor will checkpoint
-                closeConnection(conn);
+                rollbackAndCloseConnection(conn);
                 records.clear();
                 return Collections.emptyList();
             }
-            insertRecords(conn, records);
-            redshiftCopy(conn, records);
+
+            if (deduplicatedRecords.size() != records.size()) {
+                manifestFileName = getManifestFile(deduplicatedRecords);
+            }
+            // Write manifest file to Amazon S3
+            try {
+                writeManifestToS3(manifestFileName, records);
+            } catch (Exception e) {
+                LOG.error("Error writing file " + manifestFileName + " to S3. Failing this emit attempt.", e);
+                return buffer.getRecords();
+            }
+
+            LOG.info("Inserting " + deduplicatedRecords.size() + " rows into the files table.");
+            insertRecords(conn, deduplicatedRecords);
+            LOG.info("Initiating Amazon Redshift manifest copy of " + deduplicatedRecords.size() + " files.");
+            redshiftCopy(conn, manifestFileName);
             conn.commit();
-            LOG.info("Successful Redshift manifest copy of " + getNumberOfCopiedRecords(conn)
-                    + " records using manifest s3://" + s3Bucket + "/" + getManifestFile(records));
+            LOG.info("Successful Amazon Redshift manifest copy of " + getNumberOfCopiedRecords(conn) + " records from "
+                    + deduplicatedRecords.size() + " files using manifest s3://" + s3Bucket + "/"
+                    + getManifestFile(records));
             closeConnection(conn);
             return Collections.emptyList();
         } catch (SQLException | IOException e) {
-            LOG.error(e);
-            try {
-                conn.rollback();
-            } catch (SQLException e1) {
-                LOG.error("Could not rollback redshift transaction", e1);
-            }
-            // All records will be retried
-            closeConnection(conn);
+            LOG.error("Error copying data from manifest file " + manifestFileName
+                    + " into Amazon Redshift. Failing this emit attempt.", e);
+            rollbackAndCloseConnection(conn);
+            return buffer.getRecords();
+        } catch (Exception e) {
+            LOG.error("Error copying data from manifest file " + manifestFileName
+                    + " into Redshift. Failing this emit attempt.", e);
+            rollbackAndCloseConnection(conn);
             return buffer.getRecords();
         }
     }
 
+    private void rollbackAndCloseConnection(Connection conn) {
+        try {
+            if ((conn != null) && (!conn.isClosed())) {
+                conn.rollback();
+            }
+        } catch (Exception e) {
+            LOG.error("Unable to rollback Amazon Redshift transaction.", e);
+        }
+        closeConnection(conn);
+    }
+
     private void closeConnection(Connection conn) {
         try {
-            conn.close();
+            if ((conn != null) && (!conn.isClosed())) {
+                conn.close();
+            }
         } catch (Exception e) {
-
+            LOG.error("Unable to close Amazon Redshift connection.", e);
         }
     }
 
@@ -151,17 +186,19 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     }
 
     /**
-     * Generates manifest file and writes it to S3
+     * Generates manifest file and writes it to Amazon S3
      * 
-     * @param records
+     * @param fileName Name of manifest file (Amazon S3 key)
+     * @param records Used to generate the manifest file
      * @throws IOException
      */
-    private void writeManifestToS3(List<String> records) throws IOException {
+    private String writeManifestToS3(String fileName, List<String> records) throws IOException {
         String fileContents = generateManifestFile(records);
         // upload generated manifest file
-        PutObjectRequest putObjectRequest = new PutObjectRequest(s3Bucket, getManifestFile(records),
-                new ByteArrayInputStream(fileContents.getBytes()), null);
+        PutObjectRequest putObjectRequest =
+                new PutObjectRequest(s3Bucket, fileName, new ByteArrayInputStream(fileContents.getBytes()), null);
         s3Client.putObject(putObjectRequest);
+        return fileName;
     }
 
     /**
@@ -172,8 +209,8 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
      * @param records
      * @throws IOException
      */
-    private void insertRecords(Connection conn, List<String> records) throws IOException {
-        String toInsert = getSet(records, "(", "),(", ")");
+    private void insertRecords(Connection conn, Collection<String> records) throws IOException {
+        String toInsert = getCollectionString(records, "(", "),(", ")");
         StringBuilder insertSQL = new StringBuilder();
         insertSQL.append("INSERT INTO ");
         insertSQL.append(fileTable);
@@ -184,42 +221,39 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     }
 
     /**
-     * Selects the count of files that are already present in Redshift using a SQL Query in the
+     * Selects the count of files that are already present in Amazon Redshift using a SQL Query in the
      * format: SELECT COUNT(*) FROM fileTable WHERE fileKeyColumn IN ('f1','f2',...);
      * 
      * @param records
-     * @return true if some files are already present in Redshift, false otherwise
+     * @return Deduplicated list of files
      * @throws IOException
      */
 
-    private boolean checkForExistingFiles(Connection conn, List<String> records) throws IOException {
-        String files = getSet(records, "(", ",", ")");
-        StringBuilder selectExistingCount = new StringBuilder();
-        selectExistingCount.append("SELECT COUNT(*) FROM ");
-        selectExistingCount.append(fileTable);
-        selectExistingCount.append(" WHERE ");
-        selectExistingCount.append(fileKeyColumn);
-        selectExistingCount.append(" IN ");
-        selectExistingCount.append(files);
-        selectExistingCount.append(";");
+    private List<String> checkForExistingFiles(Connection conn, List<String> records) throws IOException {
+        SortedSet<String> recordSet = new TreeSet<>(records);
+        String files = getCollectionString(recordSet, "(", ",", ")");
+        StringBuilder selectExisting = new StringBuilder();
+        selectExisting.append("SELECT " + fileKeyColumn + " FROM ");
+        selectExisting.append(fileTable);
+        selectExisting.append(" WHERE ");
+        selectExisting.append(fileKeyColumn);
+        selectExisting.append(" IN ");
+        selectExisting.append(files);
+        selectExisting.append(";");
         Statement stmt = null;
         ResultSet resultSet = null;
-        boolean foundDuplicate = false;
         try {
             stmt = conn.createStatement();
-            final String query = selectExistingCount.toString();
+            final String query = selectExisting.toString();
             resultSet = stmt.executeQuery(query);
-            resultSet.next();
-            int numDuplicates = resultSet.getInt(1);
+            while (resultSet.next()) {
+                String existingFile = resultSet.getString(1);
+                LOG.info("File " + existingFile + " has already been copied. Leaving it out.");
+                recordSet.remove(existingFile);
+            }
             resultSet.close();
             stmt.close();
-            if (numDuplicates == records.size()) {
-                foundDuplicate = true;
-            } else if (numDuplicates != 0) {
-                closeConnection(conn);
-                throw new IllegalStateException("partial insert detected");
-            }
-            return foundDuplicate;
+            return new ArrayList<String>(recordSet);
         } catch (SQLException e) {
             try {
                 resultSet.close();
@@ -260,23 +294,27 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     }
 
     /**
-     * Executes a Redshift copy from S3 using a Manifest file with a command in the format: COPY
+     * Executes a, Amazon Redshift copy from Amazon S3 using a Manifest file with a command in the format: COPY
      * dataTable FROM 's3://s3Bucket/manifestFile' CREDENTIALS
      * 'aws_access_key_id=accessKey;aws_secret_access_key=secretKey' DELIMITER dataDelimiter
      * MANIFEST;
      * 
-     * @param records
+     * @param Name of manifest file
      * @throws IOException
      */
-    private void redshiftCopy(Connection conn, List<String> records) throws IOException {
-        String manifestFile = getManifestFile(records);
+    protected void redshiftCopy(Connection conn, String manifestFile) throws IOException {
+        AWSCredentials credentials = credentialsProvider.getCredentials();
         StringBuilder redshiftCopy = new StringBuilder();
         redshiftCopy.append("COPY " + dataTable + " ");
         redshiftCopy.append("FROM 's3://" + s3Bucket + "/" + manifestFile + "' ");
         redshiftCopy.append("CREDENTIALS '");
-        redshiftCopy.append("aws_access_key_id=" + accessKey);
+        redshiftCopy.append("aws_access_key_id=" + credentials.getAWSAccessKeyId());
         redshiftCopy.append(";");
-        redshiftCopy.append("aws_secret_access_key=" + secretKey);
+        redshiftCopy.append("aws_secret_access_key=" + credentials.getAWSSecretKey());
+        if (credentials instanceof AWSSessionCredentials) {
+            redshiftCopy.append(";");
+            redshiftCopy.append("token=" + ((AWSSessionCredentials) credentials).getSessionToken());
+        }
         redshiftCopy.append("' ");
         redshiftCopy.append("DELIMITER '" + dataDelimiter + "' ");
         redshiftCopy.append("MANIFEST");
@@ -298,27 +336,27 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
             stmt.close();
             return;
         } catch (SQLException e) {
-            LOG.error("s3 endpoint set to: " + s3Endpoint);
+            LOG.error("Amazon S3 endpoint set to: " + s3Endpoint);
             LOG.error("Error executing statement: " + statement, e);
             throw new IOException(e);
         }
     }
 
     /**
-     * Builds a String from the members of a List of String
+     * Builds a String from the members of a Set of String
      * 
      * @param members
-     *            List of String, each member will be surrounded by single quotes
+     *        List of String, each member will be surrounded by single quotes
      * @param prepend
-     *            beginning of String
+     *        beginning of String
      * @param delimiter
-     *            between each member
+     *        between each member
      * @param append
-     *            end of String
+     *        end of String
      * @return String in format: {prepend}
      *         '{member1}'{delimiter}'{member2}'{delimiter}...'{lastMember}'{app e n d }
      */
-    private String getSet(List<String> members, String prepend, String delimiter, String append) {
+    private String getCollectionString(Collection<String> members, String prepend, String delimiter, String append) {
         StringBuilder s = new StringBuilder();
         s.append(prepend);
         for (String m : members) {
@@ -333,17 +371,17 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     }
 
     /**
-     * Manifest file is named in the format {firstFileName}-{lastFileName}
+     * Manifest file is named in the format manifests/{firstFileName}-{lastFileName}
      * 
      * @param records
      * @return Manifest file name
      */
     private String getManifestFile(List<String> records) {
-        return records.get(0) + "-" + records.get(records.size() - 1);
+        return MANIFEST_PREFIX + records.get(0) + "-" + records.get(records.size() - 1);
     }
 
     /**
-     * Format for Redshift Manifest File:
+     * Format for Amazon Redshift Manifest File:
      * 
      * <pre>
      * {
@@ -358,7 +396,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
      * 
      * 
      * @param files
-     * @return String representation of S3 manifest file
+     * @return String representation of Amazon S3 manifest file
      */
     private String generateManifestFile(List<String> files) {
         StringBuilder s = new StringBuilder();

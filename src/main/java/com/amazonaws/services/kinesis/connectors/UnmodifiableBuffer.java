@@ -16,6 +16,7 @@ package com.amazonaws.services.kinesis.connectors;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.amazonaws.services.kinesis.connectors.interfaces.IBuffer;
 
@@ -36,8 +37,8 @@ public class UnmodifiableBuffer<T> implements IBuffer<T> {
         this.buf = buf;
         this.records = buf.getRecords();
     }
-    
-    public UnmodifiableBuffer(IBuffer<?> buf, List<T> records){
+
+    public UnmodifiableBuffer(IBuffer<?> buf, List<T> records) {
         this.buf = buf;
         this.records = records;
     }
@@ -51,9 +52,9 @@ public class UnmodifiableBuffer<T> implements IBuffer<T> {
     public long getNumRecordsToBuffer() {
         return buf.getNumRecordsToBuffer();
     }
-    
+
     @Override
-    public long getMillisecondsToBuffer(){
+    public long getMillisecondsToBuffer() {
         return buf.getMillisecondsToBuffer();
     }
 
@@ -85,5 +86,22 @@ public class UnmodifiableBuffer<T> implements IBuffer<T> {
     @Override
     public List<T> getRecords() {
         return Collections.unmodifiableList(records);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(buf, records);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof UnmodifiableBuffer) {
+            UnmodifiableBuffer<?> other = (UnmodifiableBuffer<?>) obj;
+            return Objects.equals(buf, other.buf) && Objects.equals(records, records);
+        }
+        return false;
     }
 }

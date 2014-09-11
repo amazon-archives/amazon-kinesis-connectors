@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,14 +23,15 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorRecordProcessorFactory;
 
 /**
- * The Executor for the DynamoDB emitter sample.
+ * The Executor for the Amazon DynamoDB emitter sample.
  */
-public class DynamoDBExecutor extends KinesisConnectorExecutor<KinesisMessageModel,Map<String,AttributeValue>> {
+public class DynamoDBExecutor extends KinesisConnectorExecutor<KinesisMessageModel, Map<String, AttributeValue>> {
 
     private static String configFile = "DynamoDBSample.properties";
 
     /**
      * Creates a new DynamoDBExcecutor.
+     * 
      * @param configFile The name of the configuration file to look for on the classpath.
      */
     public DynamoDBExecutor(String configFile) {
@@ -38,17 +39,20 @@ public class DynamoDBExecutor extends KinesisConnectorExecutor<KinesisMessageMod
     }
 
     @Override
-    public KinesisConnectorRecordProcessorFactory<KinesisMessageModel, Map<String,AttributeValue>> getKinesisConnectorRecordProcessorFactory() {
-        return new KinesisConnectorRecordProcessorFactory<KinesisMessageModel, Map<String,AttributeValue>>(
-                new DynamoDBMessageModelPipeline(), config);
+    public KinesisConnectorRecordProcessorFactory<KinesisMessageModel, Map<String, AttributeValue>>
+            getKinesisConnectorRecordProcessorFactory() {
+        return new KinesisConnectorRecordProcessorFactory<KinesisMessageModel, Map<String, AttributeValue>>(new DynamoDBMessageModelPipeline(),
+                config);
     }
 
     /**
      * Main method starts and runs the DynamoDBExecutor.
+     * 
      * @param args
      */
     public static void main(String[] args) {
-        KinesisConnectorExecutor<KinesisMessageModel, Map<String,AttributeValue>> dynamoDBExecutor = new DynamoDBExecutor(configFile);
+        KinesisConnectorExecutor<KinesisMessageModel, Map<String, AttributeValue>> dynamoDBExecutor =
+                new DynamoDBExecutor(configFile);
         dynamoDBExecutor.run();
     }
 }

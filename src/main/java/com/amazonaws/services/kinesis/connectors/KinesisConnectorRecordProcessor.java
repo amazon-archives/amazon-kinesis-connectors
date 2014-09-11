@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.amazonaws.services.kinesis.connectors;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -31,7 +32,9 @@ import com.amazonaws.services.kinesis.clientlibrary.types.ShutdownReason;
 import com.amazonaws.services.kinesis.connectors.interfaces.IBuffer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
 import com.amazonaws.services.kinesis.connectors.interfaces.IFilter;
+import com.amazonaws.services.kinesis.connectors.interfaces.ICollectionTransformer;
 import com.amazonaws.services.kinesis.connectors.interfaces.ITransformer;
+import com.amazonaws.services.kinesis.connectors.interfaces.ITransformerBase;
 import com.amazonaws.services.kinesis.model.Record;
 
 /**
@@ -42,26 +45,24 @@ import com.amazonaws.services.kinesis.model.Record;
  * <p>
  * When a Worker calls processRecords() on this class, the pipeline is used in the following way:
  * <ol>
- * <li>Records are transformed into the corresponding data model (parameter type T) via the
- * ITransformer.</li>
- * <li>Transformed records are passed to the IBuffer.consumeRecord() method, which may optionally
- * filter based on the IFilter in the pipeline.</li>
- * <li>When the buffer is full (IBuffer.shouldFlush() returns true), records are transformed with
- * the ITransformer to the output type (parameter type U) and a call is made to IEmitter.emit().
- * IEmitter.emit() returning an empty list is considered a success, so the record processor will
- * checkpoint and emit will not be retried. Non-empty return values will result in additional calls
- * to emit with failed records as the unprocessed list until the retry limit is reached. Upon
- * exceeding the retry limit or an exception being thrown, the IEmitter.fail() method will be called
- * with the unprocessed records.</li>
- * <li>When the shutdown() method of this class is invoked, a call is made to the
- * IEmitter.shutdown() method which should close any existing client connections.</li>
+ * <li>Records are transformed into the corresponding data model (parameter type T) via the ITransformer.</li>
+ * <li>Transformed records are passed to the IBuffer.consumeRecord() method, which may optionally filter based on the
+ * IFilter in the pipeline.</li>
+ * <li>When the buffer is full (IBuffer.shouldFlush() returns true), records are transformed with the ITransformer to
+ * the output type (parameter type U) and a call is made to IEmitter.emit(). IEmitter.emit() returning an empty list is
+ * considered a success, so the record processor will checkpoint and emit will not be retried. Non-empty return values
+ * will result in additional calls to emit with failed records as the unprocessed list until the retry limit is reached.
+ * Upon exceeding the retry limit or an exception being thrown, the IEmitter.fail() method will be called with the
+ * unprocessed records.</li>
+ * <li>When the shutdown() method of this class is invoked, a call is made to the IEmitter.shutdown() method which
+ * should close any existing client connections.</li>
  * </ol>
  * 
  */
 public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
 
     private final IEmitter<U> emitter;
-    private final ITransformer<T, U> transformer;
+    private final ITransformerBase<T, U> transformer;
     private final IFilter<T> filter;
     private final IBuffer<T> buffer;
     private final int retryLimit;
@@ -71,10 +72,13 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
 
     private String shardId;
 
-    public KinesisConnectorRecordProcessor(IBuffer<T> buffer, IFilter<T> filter, IEmitter<U> emitter,
-            ITransformer<T, U> transformer, KinesisConnectorConfiguration configuration) {
-        if (buffer == null || emitter == null || transformer == null) {
-            throw new IllegalArgumentException("buffer, emitter, and transformer must not be null");
+    public KinesisConnectorRecordProcessor(IBuffer<T> buffer,
+            IFilter<T> filter,
+            IEmitter<U> emitter,
+            ITransformerBase<T, U> transformer,
+            KinesisConnectorConfiguration configuration) {
+        if (buffer == null || filter == null || emitter == null || transformer == null) {
+            throw new IllegalArgumentException("buffer, filter, emitter, and transformer must not be null");
         }
         this.buffer = buffer;
         this.filter = filter;
@@ -96,19 +100,27 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
 
     @Override
     public void processRecords(List<Record> records, IRecordProcessorCheckpointer checkpointer) {
-        // Note: This method will be called even for empty record lists. This is needed for checking the buffer time threshold.
-        
+        // Note: This method will be called even for empty record lists. This is needed for checking the buffer time
+        // threshold.
+
         if (shardId == null) {
             throw new IllegalStateException("Record processor not initialized");
         }
 
-        // Transform each record and add to the buffer
+        // Transform each Amazon Kinesis Record and add the result to the buffer
         for (Record record : records) {
             try {
-                T transformedRecord = transformer.toClass(record);
-                if (filter.keepRecord(transformedRecord)) {
-                    buffer.consumeRecord(transformedRecord, record.getData().array().length,
-                            record.getSequenceNumber());
+                if (transformer instanceof ITransformer) {
+                    ITransformer<T, U> singleTransformer = (ITransformer<T, U>) transformer;
+                    filterAndBufferRecord(singleTransformer.toClass(record), record);
+                } else if (transformer instanceof ICollectionTransformer) {
+                    ICollectionTransformer<T, U> listTransformer = (ICollectionTransformer<T, U>) transformer;
+                    Collection<T> transformedRecords = listTransformer.toClass(record);
+                    for (T transformedRecord : transformedRecords) {
+                        filterAndBufferRecord(transformedRecord, record);
+                    }
+                } else {
+                    throw new RuntimeException("Transformer must implement ITransformer or ICollectionTransformer");
                 }
             } catch (IOException e) {
                 LOG.error(e);
@@ -118,6 +130,12 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
         if (buffer.shouldFlush()) {
             List<U> emitItems = transformToOutput(buffer.getRecords());
             emit(checkpointer, emitItems);
+        }
+    }
+
+    private void filterAndBufferRecord(T transformedRecord, Record record) {
+        if (filter.keepRecord(transformedRecord)) {
+            buffer.consumeRecord(transformedRecord, record.getData().array().length, record.getSequenceNumber());
         }
     }
 
@@ -138,7 +156,7 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
         try {
             for (int numTries = 0; numTries < retryLimit; numTries++) {
 
-                unprocessed = emitter.emit(new UnmodifiableBuffer<U>(buffer, emitItems));
+                unprocessed = emitter.emit(new UnmodifiableBuffer<U>(buffer, unprocessed));
                 if (unprocessed.isEmpty()) {
                     break;
                 }
@@ -153,8 +171,8 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
             buffer.clear();
             // checkpoint once all the records have been consumed
             checkpointer.checkpoint();
-        } catch (IOException | KinesisClientLibDependencyException | InvalidStateException
-                | ThrottlingException | ShutdownException e) {
+        } catch (IOException | KinesisClientLibDependencyException | InvalidStateException | ThrottlingException
+                | ShutdownException e) {
             LOG.error(e);
             emitter.fail(unprocessed);
         }
@@ -163,13 +181,13 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
     @Override
     public void shutdown(IRecordProcessorCheckpointer checkpointer, ShutdownReason reason) {
         switch (reason) {
-        case TERMINATE:
-            emit(checkpointer, transformToOutput(buffer.getRecords()));
-            break;
-        case ZOMBIE:
-            break;
-        default:
-            throw new IllegalStateException("invalid shutdown reason");
+            case TERMINATE:
+                emit(checkpointer, transformToOutput(buffer.getRecords()));
+                break;
+            case ZOMBIE:
+                break;
+            default:
+                throw new IllegalStateException("invalid shutdown reason");
         }
         LOG.info("shutting down record processor with shardId: " + shardId + " with reason " + reason);
         emitter.shutdown();

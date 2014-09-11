@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,10 +25,11 @@ import com.amazonaws.services.kinesis.connectors.dynamodb.DynamoDBTransformer;
 
 /**
  * A custom transfomer for {@link KinesisMessageModel} records in JSON format. The output is in a format
- * usable for insertions to DynamoDB.
+ * usable for insertions to Amazon DynamoDB.
  */
-public class KinesisMessageModelDynamoDBTransformer extends BasicJsonTransformer<KinesisMessageModel,Map<String,AttributeValue>>
-        implements DynamoDBTransformer<KinesisMessageModel> {
+public class KinesisMessageModelDynamoDBTransformer extends
+        BasicJsonTransformer<KinesisMessageModel, Map<String, AttributeValue>> implements
+        DynamoDBTransformer<KinesisMessageModel> {
 
     /**
      * Creates a new KinesisMessageModelDynamoDBTransformer.
@@ -63,8 +64,9 @@ public class KinesisMessageModelDynamoDBTransformer extends BasicJsonTransformer
 
     /**
      * Helper method to map nonempty String attributes to an AttributeValue.
+     * 
      * @param item The map of attribute names to AttributeValues to store the attribute in
-     * @param key The key to store in the map 
+     * @param key The key to store in the map
      * @param value The value to check before inserting into the item map
      */
     private void putStringIfNonempty(Map<String, AttributeValue> item, String key, String value) {
@@ -75,8 +77,9 @@ public class KinesisMessageModelDynamoDBTransformer extends BasicJsonTransformer
 
     /**
      * Helper method to map boolean attributes to an AttributeValue.
+     * 
      * @param item The map of attribute names to AttributeValues to store the attribute in
-     * @param key The key to store in the map 
+     * @param key The key to store in the map
      * @param value The value to insert into the item map
      */
     private void putBoolIfNonempty(Map<String, AttributeValue> item, String key, Boolean value) {
@@ -85,8 +88,9 @@ public class KinesisMessageModelDynamoDBTransformer extends BasicJsonTransformer
 
     /**
      * Helper method to map nonempty Integer attributes to an AttributeValue.
+     * 
      * @param item The map of attribute names to AttributeValues to store the attribute in
-     * @param key The key to store in the map 
+     * @param key The key to store in the map
      * @param value The value to insert into the item map
      */
     private void putIntegerIfNonempty(Map<String, AttributeValue> item, String key, Integer value) {

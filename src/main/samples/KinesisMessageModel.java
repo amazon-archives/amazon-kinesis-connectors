@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  */
 package samples;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 
- * This is the data model for the objects being sent through the Kinesis streams in the samples
+ * This is the data model for the objects being sent through the Amazon Kinesis streams in the samples
  * 
  */
-public class KinesisMessageModel {
+public class KinesisMessageModel implements Serializable {
 
     public int userid;
     public String username;
@@ -44,55 +46,69 @@ public class KinesisMessageModel {
     public boolean likemusicals;
 
     /**
-     * Default constructor for Jackson JSON mapper - uses bean pattern
+     * Default constructor for Jackson JSON mapper - uses bean pattern.
      */
-    public KinesisMessageModel(){
-        
+    public KinesisMessageModel() {
+
     }
-    
+
     /**
      * 
      * @param userid
-     *            Sample int data field
+     *        Sample int data field
      * @param username
-     *            Sample String data field
+     *        Sample String data field
      * @param firstname
-     *            Sample String data field
+     *        Sample String data field
      * @param lastname
-     *            Sample String data field
+     *        Sample String data field
      * @param city
-     *            Sample String data field
+     *        Sample String data field
      * @param state
-     *            Sample String data field (2 characters)
+     *        Sample String data field (2 characters)
      * @param email
-     *            Sample String data field
+     *        Sample String data field
      * @param phone
-     *            Sample String data field
+     *        Sample String data field
      * @param likesports
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param liketheatre
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param likeconcerts
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param likejazz
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param likeclassical
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param likeopera
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param likerock
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param likevegas
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param likebroadway
-     *            Sample boolean data field
+     *        Sample boolean data field
      * @param likemusicals
-     *            Sample boolean data field
+     *        Sample boolean data field
      */
-    public KinesisMessageModel(int userid, String username, String firstname, String lastname, String city,
-            String state, String email, String phone, boolean likesports, boolean liketheatre,
-            boolean likeconcerts, boolean likejazz, boolean likeclassical, boolean likeopera,
-            boolean likerock, boolean likevegas, boolean likebroadway, boolean likemusicals) {
+    public KinesisMessageModel(int userid,
+            String username,
+            String firstname,
+            String lastname,
+            String city,
+            String state,
+            String email,
+            String phone,
+            boolean likesports,
+            boolean liketheatre,
+            boolean likeconcerts,
+            boolean likejazz,
+            boolean likeclassical,
+            boolean likeopera,
+            boolean likerock,
+            boolean likevegas,
+            boolean likebroadway,
+            boolean likemusicals) {
         this.userid = userid;
         this.username = username;
         this.firstname = firstname;
@@ -135,7 +151,7 @@ public class KinesisMessageModel {
      * Setter for userid
      * 
      * @param userid
-     *            Value for userid
+     *        Value for userid
      */
     public void setUserid(int userid) {
         this.userid = userid;
@@ -154,7 +170,7 @@ public class KinesisMessageModel {
      * Setter for username
      * 
      * @param username
-     *            Value for username
+     *        Value for username
      */
     public void setUsername(String username) {
         this.username = username;
@@ -173,7 +189,7 @@ public class KinesisMessageModel {
      * Setter for firstname
      * 
      * @param firstname
-     *            Value for firstname
+     *        Value for firstname
      */
     public void setFirstname(String firstname) {
         this.firstname = firstname;
@@ -192,7 +208,7 @@ public class KinesisMessageModel {
      * Setter for lastname
      * 
      * @param lastname
-     *            Value for lastname
+     *        Value for lastname
      */
     public void setLastname(String lastname) {
         this.lastname = lastname;
@@ -211,7 +227,7 @@ public class KinesisMessageModel {
      * Setter for city
      * 
      * @param city
-     *            Value for city
+     *        Value for city
      */
     public void setCity(String city) {
         this.city = city;
@@ -230,7 +246,7 @@ public class KinesisMessageModel {
      * Setter for state
      * 
      * @param state
-     *            Value for state
+     *        Value for state
      */
     public void setState(String state) {
         this.state = state;
@@ -249,7 +265,7 @@ public class KinesisMessageModel {
      * Setter for email
      * 
      * @param email
-     *            Value for email
+     *        Value for email
      */
     public void setEmail(String email) {
         this.email = email;
@@ -268,7 +284,7 @@ public class KinesisMessageModel {
      * Setter for phone
      * 
      * @param phone
-     *            Value for phone
+     *        Value for phone
      */
     public void setPhone(String phone) {
         this.phone = phone;
@@ -287,7 +303,7 @@ public class KinesisMessageModel {
      * Setter for likesports
      * 
      * @param likesports
-     *            Value for likesports
+     *        Value for likesports
      */
     public void setLikesports(boolean likesports) {
         this.likesports = likesports;
@@ -306,7 +322,7 @@ public class KinesisMessageModel {
      * Setter for liketheatre
      * 
      * @param liketheatre
-     *            Value for liketheatre
+     *        Value for liketheatre
      */
     public void setLiketheatre(boolean liketheatre) {
         this.liketheatre = liketheatre;
@@ -325,7 +341,7 @@ public class KinesisMessageModel {
      * Setter for likeconcerts
      * 
      * @param likeconcerts
-     *            Value for likeconcerts
+     *        Value for likeconcerts
      */
     public void setLikeconcerts(boolean likeconcerts) {
         this.likeconcerts = likeconcerts;
@@ -344,7 +360,7 @@ public class KinesisMessageModel {
      * Setter for likejazz
      * 
      * @param likejazz
-     *            Value for likejazz
+     *        Value for likejazz
      */
     public void setLikejazz(boolean likejazz) {
         this.likejazz = likejazz;
@@ -363,7 +379,7 @@ public class KinesisMessageModel {
      * Setter for likeclassical
      * 
      * @param likeclassical
-     *            Value for likeclassical
+     *        Value for likeclassical
      */
     public void setLikeclassical(boolean likeclassical) {
         this.likeclassical = likeclassical;
@@ -382,7 +398,7 @@ public class KinesisMessageModel {
      * Setter for likeopera
      * 
      * @param likeopera
-     *            Value for likeopera
+     *        Value for likeopera
      */
     public void setLikeopera(boolean likeopera) {
         this.likeopera = likeopera;
@@ -401,7 +417,7 @@ public class KinesisMessageModel {
      * Setter for likerock
      * 
      * @param likerock
-     *            Value for likerock
+     *        Value for likerock
      */
     public void setLikerock(boolean likerock) {
         this.likerock = likerock;
@@ -420,7 +436,7 @@ public class KinesisMessageModel {
      * Setter for likevegas
      * 
      * @param likevegas
-     *            Value for likevegas
+     *        Value for likevegas
      */
     public void setLikevegas(boolean likevegas) {
         this.likevegas = likevegas;
@@ -439,7 +455,7 @@ public class KinesisMessageModel {
      * Setter for likebroadway
      * 
      * @param likebroadway
-     *            Value for likebroadway
+     *        Value for likebroadway
      */
     public void setLikebroadway(boolean likebroadway) {
         this.likebroadway = likebroadway;
@@ -458,7 +474,7 @@ public class KinesisMessageModel {
      * Setter for likemusicals
      * 
      * @param likemusicals
-     *            Value for likemusicals
+     *        Value for likemusicals
      */
     public void setLikemusicals(boolean likemusicals) {
         this.likemusicals = likemusicals;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@ package com.amazonaws.services.kinesis.connectors.interfaces;
 import java.util.List;
 
 /**
- * IBuffer defines a buffer used to store records streamed through Kinesis. It is a part of the
+ * IBuffer defines a buffer used to store records streamed through Amazon Kinesis. It is a part of the
  * IKinesisConnectorPipeline utilized by the KinesisConnectorRecordProcessor. Records are stored in
  * the buffer by calling the consumeRecord method. The buffer has two size limits defined: total
  * byte count and total number of records. The shouldFlush() method may indicate that the buffer is
  * full based on these limits.
  * 
  * @param <T>
- *            the data type stored in the record
+ *        the data type stored in the record
  */
 public interface IBuffer<T> {
     /**
@@ -42,7 +42,7 @@ public interface IBuffer<T> {
      * @return record number limit of buffer
      */
     public long getNumRecordsToBuffer();
-    
+
     /**
      * Get the time limit in milliseconds before the records are flushed to the emitter
      * 
@@ -61,11 +61,11 @@ public interface IBuffer<T> {
      * Stores the record in the buffer
      * 
      * @param record
-     *            record to be processed
+     *        record to be processed
      * @param recordBytes
-     *            size of the record data in bytes
+     *        size of the record data in bytes
      * @param sequenceNumber
-     *            Kinesis sequence identifier
+     *        Amazon Kinesis sequence identifier
      */
     public void consumeRecord(T record, int recordBytes, String sequenceNumber);
 
