@@ -6,6 +6,7 @@ The **Amazon Kinesis Connector Library** helps Java developers integrate [Amazon
 
  + **Amazon Kinesis Client Library**: In order to use the Amazon Kinesis Connector Library, you'll also need the [Amazon Kinesis Client Library](https://github.com/awslabs/amazon-kinesis-client). 
  + **Java 1.7**: The Amazon Kinesis Client Library requires [Java 1.7 (Java SE 7)](http://www.oracle.com/technetwork/java/javase/overview/index.html) or later.
+ + **Elasticsearch 1.2.1**: The Elasticsearch connector depends on [Elasticsearch 1.2.1][Elasticsearch].
  + **SQL driver** (Amazon Redshift only): If you're using an Amazon Redshift connector, you'll need a driver that will allow your SQL client to connect to your Amazon Redshift cluster. For more information, see [Download the Client Tools and the Drivers](http://docs.aws.amazon.com/redshift/latest/gsg/before-you-begin.html#getting-started-download-tools) in the Amazon Redshift Getting Started Guide.
 
 ## Overview
