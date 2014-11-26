@@ -59,10 +59,6 @@
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.1</version>
-        <configuration>
-          <!-- TODO: Remove this option after fixing javadoc. -->
-          <additionalJOption>-Xdoclint:-html,-missing</additionalJOption>
-        </configuration>
         <executions>
           <execution>
             <id>javadoc-jar</id>
@@ -88,4 +84,24 @@
       <optional>true</optional>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <!-- TODO: Remove this profile after fixing javadoc. -->
+    <profile>
+      <id>java8</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <additionalJOption>-Xdoclint:-html,-missing</additionalJOption>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
