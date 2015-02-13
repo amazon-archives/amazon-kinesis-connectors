@@ -16,7 +16,6 @@ package com.amazonaws.services.kinesis.connectors;
 
 import java.rmi.dgc.VMID;
 import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -50,7 +49,7 @@ public class KinesisConnectorConfiguration {
     public static final String PROP_KINESIS_INPUT_STREAM = "kinesisInputStream";
     public static final String PROP_KINESIS_INPUT_STREAM_SHARD_COUNT = "kinesisInputStreamShardCount";
     public static final String PROP_KINESIS_OUTPUT_STREAM = "kinesisOutputStream";
-    public static final String PROP_KINESIS_OUTPUT_STREAM_SHARD_COUNT = "kinesisOutpuStreamShardCount";
+    public static final String PROP_KINESIS_OUTPUT_STREAM_SHARD_COUNT = "kinesisOutputStreamShardCount";
     public static final String PROP_WORKER_ID = "workerID";
     public static final String PROP_FAILOVER_TIME = "failoverTime";
     public static final String PROP_MAX_RECORDS = "maxRecords";
