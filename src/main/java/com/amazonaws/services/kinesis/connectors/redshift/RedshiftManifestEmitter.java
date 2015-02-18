@@ -119,7 +119,6 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
                 LOG.info("All the files in this set were already copied to Redshift.");
                 // All of these files were already written
                 rollbackAndCloseConnection(conn);
-                records.clear();
                 return Collections.emptyList();
             }
 
