@@ -28,6 +28,7 @@ import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.connectors.UnmodifiableBuffer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 
 /**
  * This implementation of IEmitter is used to store files from an Amazon Kinesis stream in S3. The use of
@@ -81,7 +82,9 @@ public class S3Emitter implements IEmitter<byte[]> {
         try {
             ByteArrayInputStream object = new ByteArrayInputStream(baos.toByteArray());
             LOG.debug("Starting upload of file " + s3URI + " to Amazon S3 containing " + records.size() + " records.");
-            s3client.putObject(s3Bucket, s3FileName, object, null);
+            ObjectMetadata meta = new ObjectMetadata();
+            meta.setContentLength(baos.size());
+            s3client.putObject(s3Bucket, s3FileName, object, meta);
             LOG.info("Successfully emitted " + buffer.getRecords().size() + " records to Amazon S3 in " + s3URI);
             return Collections.emptyList();
         } catch (Exception e) {
