@@ -119,7 +119,6 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
                 LOG.info("All the files in this set were already copied to Redshift.");
                 // All of these files were already written
                 rollbackAndCloseConnection(conn);
-                records.clear();
                 return Collections.emptyList();
             }
 
@@ -128,7 +127,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
             }
             // Write manifest file to Amazon S3
             try {
-                writeManifestToS3(manifestFileName, records);
+                writeManifestToS3(manifestFileName, deduplicatedRecords);
             } catch (Exception e) {
                 LOG.error("Error writing file " + manifestFileName + " to S3. Failing this emit attempt.", e);
                 return buffer.getRecords();
