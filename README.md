@@ -34,7 +34,7 @@ The library includes implementations for use with [Amazon DynamoDB][aws-dynamodb
 
 ### kinesis.connectors.redshift
 
-+ **RedshiftTransformer**: Implement the toDelimtedString method to output a delimited-string representation of your data model. The string must be compatible with an [Amazon Redshift COPY command](http://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html#r_COPY-copy-from-amazon-s3-synopsis).
++ **RedshiftTransformer**: Implement the toDelimitedString method to output a delimited-string representation of your data model. The string must be compatible with an [Amazon Redshift COPY command](http://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html#r_COPY-copy-from-amazon-s3-synopsis).
 + For more information about Amazon Redshift copy operations and manifests, see [COPY](http://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html#r_COPY-copy-from-amazon-s3-synopsis) and [Using a manifest to specify data files](http://docs.aws.amazon.com/redshift/latest/dg/loading-data-files-using-manifest.html) in the Amazon Redshift Developer Guide.
 
 ### kinesis.connectors.s3 
@@ -86,6 +86,7 @@ To run a sample, complete these steps:
 ### Release 1.1 (June 30, 2014)
 + Added time threshold to IBuffer 
 + Added region name support
+
 ### Release 1.1.1 (Sep 11, 2014)
 + Added connector to Elasticsearch 
 
