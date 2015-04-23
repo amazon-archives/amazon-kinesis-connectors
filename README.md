@@ -80,7 +80,7 @@ To run a sample, complete these steps:
 1. Edit the *.properties file, adding your AWS credentials and any necessary AWS resource configurations.
 	+ **Note:** In the samples, [KinesisConnectorExecutor](https://github.com/awslabs/amazon-kinesis-connectors/blob/master/src/main/samples/KinesisConnectorExecutor.java) uses the [DefaultAWSCredentialsProviderChain](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html), which looks for credentials supplied by environment variables, system properties, or IAM role on Amazon EC2. If you prefer to specify your AWS credentials via a properties file on the classpath, edit the sample code to use [ClasspathPropertiesFileCredentialsProvider](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/ClasspathPropertiesFileCredentialsProvider.html) instead.
 2. Confirm that the required AWS resources exist, or set the flags in the *.properties file to indicate that resources should be created when the sample is run.
-3. Within the sample folder, execute **ant setup** which will download dependancies then execute **ant run**.
+3. Within the sample folder, execute **ant setup** which will download dependencies then execute **ant run**.
 
 ## Release Notes
 ### Release 1.1 (June 30, 2014)
