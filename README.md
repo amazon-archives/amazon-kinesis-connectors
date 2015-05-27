@@ -83,12 +83,16 @@ To run a sample, complete these steps:
 3. Within the sample folder, execute **ant run**.
 
 ## Release Notes
-### Release 1.1 (June 30, 2014)
-+ Added time threshold to IBuffer 
-+ Added region name support
+### Release 1.1.2 (May 27, 2015)
++ Upgraded AWS SDK to 1.9, KCL to 1.3.0
++ Added pom.xml file
 
 ### Release 1.1.1 (Sep 11, 2014)
-+ Added connector to Elasticsearch 
++ Added connector to Elasticsearch
+
+### Release 1.1 (June 30, 2014)
++ Added time threshold to IBuffer
++ Added region name support
 
 ## Related Resources
 

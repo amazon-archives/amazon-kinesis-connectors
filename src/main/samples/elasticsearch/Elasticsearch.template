@@ -92,11 +92,6 @@
       "ap-southeast-2" : { "64" : "ami-3b4bd301", "64HVM" : "ami-cf4ad2f5" },
       "ap-northeast-1" : { "64" : "ami-c9562fc8", "64HVM" : "ami-bb562fba" }
     },
-    "ElasticsearchVersion2ServiceWrapperVersion" : {
-      "0.90.11" : { "Ver" : "0.90"},
-      "1.0.0"   : { "Ver" : "master"},
-      "1.2.1"   : { "Ver" : "master"}
-    },
     "ElasticsearchVersion2ServiceWrapperHash" : {
       "0.90.11" : { "Hash" : "303e94d" },
       "1.0.0"   : { "Hash" : "4943d5a" },
@@ -230,8 +225,8 @@
 
           "#install elasticsearch servicewrapper daemon\n",
           "cd ~\n",
-          "wget https://github.com/elasticsearch/elasticsearch-servicewrapper/zipball/", { "Fn::FindInMap" : [ "ElasticsearchVersion2ServiceWrapperVersion", { "Ref" : "ElasticsearchVersion" }, "Ver"] }, "\n",
-          "unzip ", { "Fn::FindInMap" : [ "ElasticsearchVersion2ServiceWrapperVersion", { "Ref" : "ElasticsearchVersion" }, "Ver"] }, "\n",
+          "wget -O elasticsearch-servicewrapper.zip https://github.com/elasticsearch/elasticsearch-servicewrapper/zipball/", { "Fn::FindInMap" : [ "ElasticsearchVersion2ServiceWrapperHash", { "Ref" : "ElasticsearchVersion" }, "Ver"] }, "\n",
+          "unzip elasticsearch-servicewrapper.zip\n",
           "mv elasticsearch-elasticsearch-servicewrapper-", { "Fn::FindInMap" : [ "ElasticsearchVersion2ServiceWrapperHash", { "Ref" : "ElasticsearchVersion" }, "Hash"] }, "/service/ /usr/local/elasticsearch/elasticsearch-" , { "Ref" : "ElasticsearchVersion"  }, "/bin/\n",
           "cd /usr/local/elasticsearch/elasticsearch-" , { "Ref" : "ElasticsearchVersion"  }, "\n",
           "sed -i 's#set.default.ES_HOME=.*#set.default.ES_HOME='$PWD'#g' bin/service/elasticsearch.conf\n",

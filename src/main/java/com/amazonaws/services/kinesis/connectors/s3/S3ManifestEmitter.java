@@ -52,7 +52,9 @@ public class S3ManifestEmitter extends S3Emitter {
         super(configuration);
         manifestStream = configuration.KINESIS_OUTPUT_STREAM;
         kinesisClient = new AmazonKinesisClient(configuration.AWS_CREDENTIALS_PROVIDER);
-        kinesisClient.setEndpoint(configuration.KINESIS_ENDPOINT);
+        if (configuration.KINESIS_ENDPOINT != null) {
+            kinesisClient.setEndpoint(configuration.KINESIS_ENDPOINT);
+        }
     }
 
     @Override
