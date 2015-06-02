@@ -130,6 +130,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
                 writeManifestToS3(manifestFileName, deduplicatedRecords);
             } catch (Exception e) {
                 LOG.error("Error writing file " + manifestFileName + " to S3. Failing this emit attempt.", e);
+                rollbackAndCloseConnection(conn);
                 return buffer.getRecords();
             }
 
