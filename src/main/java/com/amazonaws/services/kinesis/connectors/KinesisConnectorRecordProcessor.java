@@ -30,9 +30,9 @@ import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessor;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessorCheckpointer;
 import com.amazonaws.services.kinesis.clientlibrary.types.ShutdownReason;
 import com.amazonaws.services.kinesis.connectors.interfaces.IBuffer;
+import com.amazonaws.services.kinesis.connectors.interfaces.ICollectionTransformer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
 import com.amazonaws.services.kinesis.connectors.interfaces.IFilter;
-import com.amazonaws.services.kinesis.connectors.interfaces.ICollectionTransformer;
 import com.amazonaws.services.kinesis.connectors.interfaces.ITransformer;
 import com.amazonaws.services.kinesis.connectors.interfaces.ITransformerBase;
 import com.amazonaws.services.kinesis.model.Record;
@@ -57,7 +57,7 @@ import com.amazonaws.services.kinesis.model.Record;
  * <li>When the shutdown() method of this class is invoked, a call is made to the IEmitter.shutdown() method which
  * should close any existing client connections.</li>
  * </ol>
- * 
+ *
  */
 public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
 
@@ -67,6 +67,7 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
     private final IBuffer<T> buffer;
     private final int retryLimit;
     private final long backoffInterval;
+    private boolean isShutdown = false;
 
     private static final Log LOG = LogFactory.getLog(KinesisConnectorRecordProcessor.class);
 
@@ -102,7 +103,10 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
     public void processRecords(List<Record> records, IRecordProcessorCheckpointer checkpointer) {
         // Note: This method will be called even for empty record lists. This is needed for checking the buffer time
         // threshold.
-
+        if (isShutdown) {
+            LOG.warn("processRecords called on shutdown record processor for shardId: " + shardId);
+            return;
+        }
         if (shardId == null) {
             throw new IllegalStateException("Record processor not initialized");
         }
@@ -155,7 +159,6 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
         List<U> unprocessed = new ArrayList<U>(emitItems);
         try {
             for (int numTries = 0; numTries < retryLimit; numTries++) {
-
                 unprocessed = emitter.emit(new UnmodifiableBuffer<U>(buffer, unprocessed));
                 if (unprocessed.isEmpty()) {
                     break;
@@ -168,9 +171,12 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
             if (!unprocessed.isEmpty()) {
                 emitter.fail(unprocessed);
             }
+            final String lastSequenceNumberProcessed = buffer.getLastSequenceNumber();
             buffer.clear();
             // checkpoint once all the records have been consumed
-            checkpointer.checkpoint();
+            if (lastSequenceNumberProcessed != null) {
+                checkpointer.checkpoint(lastSequenceNumberProcessed);
+            }
         } catch (IOException | KinesisClientLibDependencyException | InvalidStateException | ThrottlingException
                 | ShutdownException e) {
             LOG.error(e);
@@ -180,17 +186,27 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
 
     @Override
     public void shutdown(IRecordProcessorCheckpointer checkpointer, ShutdownReason reason) {
+        LOG.info("Shutting down record processor with shardId: " + shardId + " with reason " + reason);
+        if (isShutdown) {
+            LOG.warn("Record processor for shardId: " + shardId + " has been shutdown multiple times.");
+            return;
+        }
         switch (reason) {
             case TERMINATE:
                 emit(checkpointer, transformToOutput(buffer.getRecords()));
+                try {
+                    checkpointer.checkpoint();
+                } catch (KinesisClientLibDependencyException | InvalidStateException | ThrottlingException | ShutdownException e) {
+                    LOG.error(e);
+                }
                 break;
             case ZOMBIE:
                 break;
             default:
                 throw new IllegalStateException("invalid shutdown reason");
         }
-        LOG.info("shutting down record processor with shardId: " + shardId + " with reason " + reason);
         emitter.shutdown();
+        isShutdown = true;
     }
 
 }

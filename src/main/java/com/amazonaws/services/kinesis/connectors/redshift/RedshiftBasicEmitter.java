@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -83,12 +83,12 @@ public class RedshiftBasicEmitter extends S3Emitter {
             executeStatement(generateCopyStatement(s3File), conn);
             LOG.info("Successfully copied " + getNumberOfCopiedRecords(conn)
                     + " records to Amazon Redshift from file s3://" + s3Bucket + "/" + s3File);
-            closeConnection(conn);
             return Collections.emptyList();
-        } catch (IOException | SQLException e) {
+        } catch (Exception e) {
             LOG.error(e);
-            closeConnection(conn);
             return buffer.getRecords();
+        } finally {
+            closeConnection(conn);
         }
     }
 
@@ -104,7 +104,9 @@ public class RedshiftBasicEmitter extends S3Emitter {
 
     private void closeConnection(Connection conn) {
         try {
-            conn.close();
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+            }
         } catch (Exception e) {
             LOG.error(e);
         }
@@ -121,43 +123,18 @@ public class RedshiftBasicEmitter extends S3Emitter {
         return exec.toString();
     }
 
-    private void executeStatement(String statement, Connection conn) throws IOException {
-        try {
-            Statement stmt = conn.createStatement();
+    private void executeStatement(String statement, Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
             stmt.execute(statement);
-            stmt.close();
-            return;
-        } catch (SQLException e) {
-            LOG.error(e);
-            throw new IOException(e);
         }
-
     }
 
-    private int getNumberOfCopiedRecords(Connection conn) throws IOException {
+    private int getNumberOfCopiedRecords(Connection conn) throws SQLException {
         String cmd = "select pg_last_copy_count();";
-        Statement stmt = null;
-        ResultSet resultSet = null;
-        try {
-            stmt = conn.createStatement();
-            resultSet = stmt.executeQuery(cmd);
+        try (Statement stmt = conn.createStatement(); ResultSet resultSet = stmt.executeQuery(cmd)) {
             resultSet.next();
             int numCopiedRecords = resultSet.getInt(1);
-            resultSet.close();
-            stmt.close();
             return numCopiedRecords;
-        } catch (SQLException e) {
-            try {
-                resultSet.close();
-            } catch (Exception e1) {
-            }
-            try {
-                stmt.close();
-            } catch (Exception e1) {
-            }
-            throw new IOException(e);
         }
-
     }
-
 }

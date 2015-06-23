@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import com.amazonaws.services.kinesis.clientlibrary.lib.worker.InitialPositionIn
  */
 public class KinesisConnectorConfiguration {
     private static final Log LOG = LogFactory.getLog(KinesisConnectorConfiguration.class);
-    public static final String KINESIS_CONNECTOR_USER_AGENT = "amazon-kinesis-connector-java-1.1.2";
+    public static final String KINESIS_CONNECTOR_USER_AGENT = "amazon-kinesis-connector-java-1.2.0";
 
     // Connector App Property Keys
     public static final String PROP_APP_NAME = "appName";

@@ -33,7 +33,9 @@
     <target name="download">
         <mkdir dir="${kcl.dir}/lib" />
         <mkdir dir="${external.dir}/lib" />
-        <get src= "http://central.maven.org/maven2/com/amazonaws/amazon-kinesis-client/1.1.0/amazon-kinesis-client-1.1.0.jar" dest="${kcl.dir}/lib" usetimestamp="true" verbose="true"/>
+        <get src= "http://central.maven.org/maven2/com/amazonaws/amazon-kinesis-client/1.4.0/amazon-kinesis-client-1.4.0.jar" dest="${kcl.dir}/lib" usetimestamp="true" verbose="true"/>
+        <get src= "http://central.maven.org/maven2/com/google/protobuf/protobuf-java/2.6.1/protobuf-java-2.6.1.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+        <get src= "http://central.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
         <get src= "http://central.maven.org/maven2/org/postgresql/postgresql/9.3-1102-jdbc41/postgresql-9.3-1102-jdbc41.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
         <get src= "http://central.maven.org/maven2/org/elasticsearch/elasticsearch/1.2.1/elasticsearch-1.2.1.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
         <get src= "http://central.maven.org/maven2/org/apache/lucene/lucene-core/4.8.1/lucene-core-4.8.1.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>

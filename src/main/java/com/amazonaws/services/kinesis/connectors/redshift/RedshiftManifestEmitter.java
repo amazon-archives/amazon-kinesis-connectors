@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2013-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Amazon Software License (the "License").
  * You may not use this file except in compliance with the License.
@@ -118,21 +118,15 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
             if (deduplicatedRecords.isEmpty()) {
                 LOG.info("All the files in this set were already copied to Redshift.");
                 // All of these files were already written
-                rollbackAndCloseConnection(conn);
+                rollbackConnection(conn);
                 return Collections.emptyList();
             }
 
             if (deduplicatedRecords.size() != records.size()) {
                 manifestFileName = getManifestFile(deduplicatedRecords);
             }
-            // Write manifest file to Amazon S3
-            try {
-                writeManifestToS3(manifestFileName, deduplicatedRecords);
-            } catch (Exception e) {
-                LOG.error("Error writing file " + manifestFileName + " to S3. Failing this emit attempt.", e);
-                return buffer.getRecords();
-            }
-
+            LOG.info("Writing manifest file " + manifestFileName + " to Amazon S3.");
+            writeManifestToS3(manifestFileName, deduplicatedRecords);
             LOG.info("Inserting " + deduplicatedRecords.size() + " rows into the files table.");
             insertRecords(conn, deduplicatedRecords);
             LOG.info("Initiating Amazon Redshift manifest copy of " + deduplicatedRecords.size() + " files.");
@@ -141,35 +135,30 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
             LOG.info("Successful Amazon Redshift manifest copy of " + getNumberOfCopiedRecords(conn) + " records from "
                     + deduplicatedRecords.size() + " files using manifest s3://" + s3Bucket + "/"
                     + getManifestFile(records));
-            closeConnection(conn);
             return Collections.emptyList();
-        } catch (SQLException | IOException e) {
-            LOG.error("Error copying data from manifest file " + manifestFileName
-                    + " into Amazon Redshift. Failing this emit attempt.", e);
-            rollbackAndCloseConnection(conn);
-            return buffer.getRecords();
         } catch (Exception e) {
-            LOG.error("Error copying data from manifest file " + manifestFileName
-                    + " into Redshift. Failing this emit attempt.", e);
-            rollbackAndCloseConnection(conn);
+            LOG.error("Error emitting data to Amazon Redshift for manifest file name "
+                    + manifestFileName + ". Failing this emit attempt.", e);
+            rollbackConnection(conn);
             return buffer.getRecords();
+        } finally {
+            closeConnection(conn);
         }
     }
 
-    private void rollbackAndCloseConnection(Connection conn) {
+    private void rollbackConnection(Connection conn) {
         try {
-            if ((conn != null) && (!conn.isClosed())) {
+            if (conn != null && !conn.isClosed()) {
                 conn.rollback();
             }
         } catch (Exception e) {
             LOG.error("Unable to rollback Amazon Redshift transaction.", e);
         }
-        closeConnection(conn);
     }
 
     private void closeConnection(Connection conn) {
         try {
-            if ((conn != null) && (!conn.isClosed())) {
+            if (conn != null && !conn.isClosed()) {
                 conn.close();
             }
         } catch (Exception e) {
@@ -206,9 +195,9 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
      * VALUES ('f1'),('f2'),...;
      * 
      * @param records
-     * @throws IOException
+     * @throws SQLException
      */
-    private void insertRecords(Connection conn, Collection<String> records) throws IOException {
+    private void insertRecords(Connection conn, Collection<String> records) throws SQLException {
         String toInsert = getCollectionString(records, "(", "),(", ")");
         StringBuilder insertSQL = new StringBuilder();
         insertSQL.append("INSERT INTO ");
@@ -225,10 +214,10 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
      * 
      * @param records
      * @return Deduplicated list of files
-     * @throws IOException
+     * @throws SQLException
      */
 
-    private List<String> checkForExistingFiles(Connection conn, List<String> records) throws IOException {
+    private List<String> checkForExistingFiles(Connection conn, List<String> records) throws SQLException {
         SortedSet<String> recordSet = new TreeSet<>(records);
         String files = getCollectionString(recordSet, "(", ",", ")");
         StringBuilder selectExisting = new StringBuilder();
@@ -239,57 +228,24 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
         selectExisting.append(" IN ");
         selectExisting.append(files);
         selectExisting.append(";");
-        Statement stmt = null;
-        ResultSet resultSet = null;
-        try {
-            stmt = conn.createStatement();
-            final String query = selectExisting.toString();
-            resultSet = stmt.executeQuery(query);
+        String query = selectExisting.toString();
+        try (Statement stmt = conn.createStatement(); ResultSet resultSet = stmt.executeQuery(query)) {
             while (resultSet.next()) {
                 String existingFile = resultSet.getString(1);
                 LOG.info("File " + existingFile + " has already been copied. Leaving it out.");
                 recordSet.remove(existingFile);
             }
-            resultSet.close();
-            stmt.close();
             return new ArrayList<String>(recordSet);
-        } catch (SQLException e) {
-            try {
-                resultSet.close();
-            } catch (Exception e1) {
-            }
-            try {
-                stmt.close();
-            } catch (Exception e1) {
-            }
-            throw new IOException(e);
         }
     }
 
-    private int getNumberOfCopiedRecords(Connection conn) throws IOException {
+    private int getNumberOfCopiedRecords(Connection conn) throws SQLException {
         String cmd = "select pg_last_copy_count();";
-        Statement stmt = null;
-        ResultSet resultSet = null;
-        try {
-            stmt = conn.createStatement();
-            resultSet = stmt.executeQuery(cmd);
+        try (Statement stmt = conn.createStatement(); ResultSet resultSet = stmt.executeQuery(cmd)) {
             resultSet.next();
             int numCopiedRecords = resultSet.getInt(1);
-            resultSet.close();
-            stmt.close();
             return numCopiedRecords;
-        } catch (SQLException e) {
-            try {
-                resultSet.close();
-            } catch (Exception e1) {
-            }
-            try {
-                stmt.close();
-            } catch (Exception e1) {
-            }
-            throw new IOException(e);
         }
-
     }
 
     /**
@@ -299,9 +255,9 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
      * MANIFEST;
      * 
      * @param Name of manifest file
-     * @throws IOException
+     * @throws SQLException
      */
-    protected void redshiftCopy(Connection conn, String manifestFile) throws IOException {
+    protected void redshiftCopy(Connection conn, String manifestFile) throws SQLException {
         AWSCredentials credentials = credentialsProvider.getCredentials();
         StringBuilder redshiftCopy = new StringBuilder();
         redshiftCopy.append("COPY " + dataTable + " ");
@@ -326,18 +282,11 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
      * redshiftRetryLimit times.
      * 
      * @param statement
-     * @throws IOException
+     * @throws SQLException
      */
-    private void executeStatement(Connection conn, String statement) throws IOException {
-        try {
-            Statement stmt = conn.createStatement();
+    private void executeStatement(Connection conn, String statement) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
             stmt.execute(statement);
-            stmt.close();
-            return;
-        } catch (SQLException e) {
-            LOG.error("Amazon S3 endpoint set to: " + s3Endpoint);
-            LOG.error("Error executing statement: " + statement, e);
-            throw new IOException(e);
         }
     }
 
