@@ -16,7 +16,6 @@ package com.amazonaws.services.kinesis.connectors;
 
 import java.rmi.dgc.VMID;
 import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
