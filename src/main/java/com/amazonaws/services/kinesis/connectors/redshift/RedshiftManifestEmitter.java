@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -183,8 +184,11 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     private String writeManifestToS3(String fileName, List<String> records) throws IOException {
         String fileContents = generateManifestFile(records);
         // upload generated manifest file
+        byte[] bytes = fileContents.getBytes();
+        ObjectMetadata meta = new ObjectMetadata();
+        meta.setContentLength(bytes.length);
         PutObjectRequest putObjectRequest =
-                new PutObjectRequest(s3Bucket, fileName, new ByteArrayInputStream(fileContents.getBytes()), null);
+                new PutObjectRequest(s3Bucket, fileName, new ByteArrayInputStream(bytes), meta);
         s3Client.putObject(putObjectRequest);
         return fileName;
     }
