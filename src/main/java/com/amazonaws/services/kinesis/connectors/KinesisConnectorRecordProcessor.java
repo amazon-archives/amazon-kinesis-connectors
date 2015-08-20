@@ -126,8 +126,18 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
                 } else {
                     throw new RuntimeException("Transformer must implement ITransformer or ICollectionTransformer");
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOG.error(e);
+                try {
+                    final String lastSequenceNumberProcessed = buffer.getLastSequenceNumber();
+                    checkpointer.checkpoint(lastSequenceNumberProcessed);
+                } catch (InvalidStateException e1) {
+                    LOG.error("Checkpointing failed.");
+                    e1.printStackTrace();
+                } catch (ShutdownException e1) {
+                    LOG.error("Checkpointing failed.");
+                    e1.printStackTrace();
+                }
             }
         }
 
