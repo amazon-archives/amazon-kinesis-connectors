@@ -74,10 +74,10 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
     private String shardId;
 
     public KinesisConnectorRecordProcessor(IBuffer<T> buffer,
-            IFilter<T> filter,
-            IEmitter<U> emitter,
-            ITransformerBase<T, U> transformer,
-            KinesisConnectorConfiguration configuration) {
+                                           IFilter<T> filter,
+                                           IEmitter<U> emitter,
+                                           ITransformerBase<T, U> transformer,
+                                           KinesisConnectorConfiguration configuration) {
         if (buffer == null || filter == null || emitter == null || transformer == null) {
             throw new IllegalArgumentException("buffer, filter, emitter, and transformer must not be null");
         }
@@ -103,6 +103,7 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
     public void processRecords(List<Record> records, IRecordProcessorCheckpointer checkpointer) {
         // Note: This method will be called even for empty record lists. This is needed for checking the buffer time
         // threshold.
+        String seqNum = null;
         if (isShutdown) {
             LOG.warn("processRecords called on shutdown record processor for shardId: " + shardId);
             return;
@@ -110,10 +111,11 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
         if (shardId == null) {
             throw new IllegalStateException("Record processor not initialized");
         }
+        try {
+            // Transform each Amazon Kinesis Record and add the result to the buffer
+            for (Record record : records) {
+                seqNum = record.getSequenceNumber();
 
-        // Transform each Amazon Kinesis Record and add the result to the buffer
-        for (Record record : records) {
-            try {
                 if (transformer instanceof ITransformer) {
                     ITransformer<T, U> singleTransformer = (ITransformer<T, U>) transformer;
                     filterAndBufferRecord(singleTransformer.toClass(record), record);
@@ -126,24 +128,30 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
                 } else {
                     throw new RuntimeException("Transformer must implement ITransformer or ICollectionTransformer");
                 }
-            } catch (Exception e) {
-                LOG.error(e);
-                try {
-                    final String lastSequenceNumberProcessed = buffer.getLastSequenceNumber();
-                    checkpointer.checkpoint(lastSequenceNumberProcessed);
-                } catch (InvalidStateException e1) {
-                    LOG.error("Checkpointing failed.");
-                    e1.printStackTrace();
-                } catch (ShutdownException e1) {
-                    LOG.error("Checkpointing failed.");
-                    e1.printStackTrace();
-                }
-            }
-        }
 
-        if (buffer.shouldFlush()) {
-            List<U> emitItems = transformToOutput(buffer.getRecords());
-            emit(checkpointer, emitItems);
+            }
+
+            if (buffer.shouldFlush()) {
+                List<U> emitItems = transformToOutput(buffer.getRecords());
+                emit(checkpointer, emitItems);
+            }
+        } catch (Exception e) {
+            //Catch any exception during Record Processing.
+            //Checkpoint so that we can move past the record that is causing the exception. Otherwise,
+            //we will be stuck in an infinite loop.
+            LOG.error(e);
+            try {
+                if (seqNum != null) {
+                    final String lastSequenceNumberProcessed = seqNum;
+                    checkpointer.checkpoint(lastSequenceNumberProcessed);
+                }
+            } catch (InvalidStateException e1) {
+                LOG.error("Checkpointing failed.");
+                e1.printStackTrace();
+            } catch (ShutdownException e1) {
+                LOG.error("Checkpointing failed.");
+                e1.printStackTrace();
+            }
         }
     }
 
@@ -191,6 +199,16 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
                 | ShutdownException e) {
             LOG.error(e);
             emitter.fail(unprocessed);
+            try {
+                final String lastSequenceNumberProcessed = buffer.getLastSequenceNumber();
+                checkpointer.checkpoint(lastSequenceNumberProcessed);
+            } catch (InvalidStateException e1) {
+                LOG.error("Checkpointing failed.");
+                e1.printStackTrace();
+            } catch (ShutdownException e1) {
+                LOG.error("Checkpointing failed.");
+                e1.printStackTrace();
+            }
         }
     }
 
