@@ -47,7 +47,7 @@ public class KinesisUtils {
      *        The shard count to create the stream with
      */
     public static void createInputStream(KinesisConnectorConfiguration config) {
-        AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
+        AmazonKinesis kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
         kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
         if (config.KINESIS_ENDPOINT != null) {
             kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
@@ -66,7 +66,7 @@ public class KinesisUtils {
      *        The shard count to create the stream with
      */
     public static void createOutputStream(KinesisConnectorConfiguration config) {
-        AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
+        AmazonKinesis kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
         kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
         if (config.KINESIS_ENDPOINT != null) {
             kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
@@ -80,7 +80,7 @@ public class KinesisUtils {
      * Creates an Amazon Kinesis stream if it does not exist and waits for it to become available
      * 
      * @param kinesisClient
-     *        The {@link AmazonKinesisClient} with Amazon Kinesis read and write privileges
+     *        The {@link AmazonKinesis} with Amazon Kinesis read and write privileges
      * @param streamName
      *        The Amazon Kinesis stream name to create
      * @param shardCount
@@ -90,7 +90,7 @@ public class KinesisUtils {
      * @throws IllegalStateException
      *         Stream does not go active before the timeout
      */
-    public static void createAndWaitForStreamToBecomeAvailable(AmazonKinesisClient kinesisClient,
+    public static void createAndWaitForStreamToBecomeAvailable(AmazonKinesis kinesisClient,
             String streamName,
             int shardCount) {
         if (streamExists(kinesisClient, streamName)) {
@@ -152,12 +152,12 @@ public class KinesisUtils {
      * Helper method to determine if an Amazon Kinesis stream exists.
      * 
      * @param kinesisClient
-     *        The {@link AmazonKinesisClient} with Amazon Kinesis read privileges
+     *        The {@link AmazonKinesis} with Amazon Kinesis read privileges
      * @param streamName
      *        The Amazon Kinesis stream to check for
      * @return true if the Amazon Kinesis stream exists, otherwise return false
      */
-    private static boolean streamExists(AmazonKinesisClient kinesisClient, String streamName) {
+    private static boolean streamExists(AmazonKinesis kinesisClient, String streamName) {
         DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest();
         describeStreamRequest.setStreamName(streamName);
         try {
@@ -172,12 +172,12 @@ public class KinesisUtils {
      * Return the state of a Amazon Kinesis stream.
      * 
      * @param kinesisClient
-     *        The {@link AmazonKinesisClient} with Amazon Kinesis read privileges
+     *        The {@link AmazonKinesis} with Amazon Kinesis read privileges
      * @param streamName
      *        The Amazon Kinesis stream to get the state of
      * @return String representation of the Stream state
      */
-    private static String streamState(AmazonKinesisClient kinesisClient, String streamName) {
+    private static String streamState(AmazonKinesis kinesisClient, String streamName) {
         DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest();
         describeStreamRequest.setStreamName(streamName);
         try {
@@ -191,10 +191,10 @@ public class KinesisUtils {
      * Gets a list of all Amazon Kinesis streams
      * 
      * @param kinesisClient
-     *        The {@link AmazonKinesisClient} with Amazon Kinesis read privileges
+     *        The {@link AmazonKinesis} with Amazon Kinesis read privileges
      * @return list of Amazon Kinesis streams
      */
-    public static List<String> listAllStreams(AmazonKinesisClient kinesisClient) {
+    public static List<String> listAllStreams(AmazonKinesis kinesisClient) {
 
         ListStreamsRequest listStreamsRequest = new ListStreamsRequest();
         listStreamsRequest.setLimit(10);
@@ -218,7 +218,7 @@ public class KinesisUtils {
      *        The configuration containing the stream name and {@link AWSCredentialsProvider}
      */
     public static void deleteInputStream(KinesisConnectorConfiguration config) {
-        AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
+        AmazonKinesis kinesisClient = new AmazonKinesis(config.AWS_CREDENTIALS_PROVIDER);
         kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
         if (config.KINESIS_ENDPOINT != null) {
             kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
@@ -233,7 +233,7 @@ public class KinesisUtils {
      *        The configuration containing the stream name and {@link AWSCredentialsProvider}
      */
     public static void deleteOutputStream(KinesisConnectorConfiguration config) {
-        AmazonKinesisClient kinesisClient = new AmazonKinesisClient(config.AWS_CREDENTIALS_PROVIDER);
+        AmazonKinesis kinesisClient = new AmazonKinesis(config.AWS_CREDENTIALS_PROVIDER);
         kinesisClient.setRegion(RegionUtils.getRegion(config.REGION_NAME));
         if (config.KINESIS_ENDPOINT != null) {
             kinesisClient.setEndpoint(config.KINESIS_ENDPOINT);
@@ -245,11 +245,11 @@ public class KinesisUtils {
      * Deletes an Amazon Kinesis stream if it exists.
      * 
      * @param kinesisClient
-     *        The {@link AmazonKinesisClient} with Amazon Kinesis read and write privileges
+     *        The {@link AmazonKinesis} with Amazon Kinesis read and write privileges
      * @param streamName
      *        The Amazon Kinesis stream to delete
      */
-    public static void deleteStream(AmazonKinesisClient kinesisClient, String streamName) {
+    public static void deleteStream(AmazonKinesis kinesisClient, String streamName) {
         if (streamExists(kinesisClient, streamName)) {
             DeleteStreamRequest deleteStreamRequest = new DeleteStreamRequest();
             deleteStreamRequest.setStreamName(streamName);
