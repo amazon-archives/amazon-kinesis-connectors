@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.net.InetSocketAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +32,6 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.transport.NoNodeAvailableException;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
@@ -104,7 +104,7 @@ public class ElasticsearchEmitter implements IEmitter<ElasticsearchObject> {
 
     public ElasticsearchEmitter(KinesisConnectorConfiguration configuration) {
         Settings settings =
-                ImmutableSettings.settingsBuilder()
+                Settings.settingsBuilder()
                         .put(ELASTICSEARCH_CLUSTER_NAME_KEY, configuration.ELASTICSEARCH_CLUSTER_NAME)
                         .put(ELASTICSEARCH_CLIENT_TRANSPORT_SNIFF_KEY, configuration.ELASTICSEARCH_TRANSPORT_SNIFF)
                         .put(ELASTICSEARCH_CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME_KEY,
@@ -115,9 +115,9 @@ public class ElasticsearchEmitter implements IEmitter<ElasticsearchObject> {
                         .build();
         elasticsearchEndpoint = configuration.ELASTICSEARCH_ENDPOINT;
         elasticsearchPort = configuration.ELASTICSEARCH_PORT;
-        LOG.info("ElasticsearchEmitter using elasticsearch endpoint " + elasticsearchEndpoint + ":" + elasticsearchPort);
-        elasticsearchClient = new TransportClient(settings);
-        elasticsearchClient.addTransportAddress(new InetSocketTransportAddress(elasticsearchEndpoint, elasticsearchPort));
+        LOG.info("Elasticsearch2Emitter using elasticsearch endpoint " + elasticsearchEndpoint + ":" + elasticsearchPort);
+        elasticsearchClient = TransportClient.builder().settings(settings).build();
+        elasticsearchClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(elasticsearchEndpoint, elasticsearchPort)));
     }
 
     /**
