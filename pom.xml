@@ -6,7 +6,7 @@
     <artifactId>amazon-kinesis-connectors</artifactId>
     <packaging>jar</packaging>
     <name>Amazon Kinesis Connector Library</name>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <description>The Amazon Kinesis Connector Library helps Java developers integrate Amazon Kinesis with other AWS and non-AWS services.</description>
     <url>https://aws.amazon.com/kinesis</url>
 
@@ -23,8 +23,8 @@
     </licenses>
 
     <properties>
-        <amazon-kinesis-client.version>1.4.0</amazon-kinesis-client.version>
-        <aws-java-sdk.version>1.9.37</aws-java-sdk.version>
+        <amazon-kinesis-client.version>1.6.3</amazon-kinesis-client.version>
+        <aws-java-sdk.version>1.10.61</aws-java-sdk.version>
         <elasticsearch.version>1.2.1</elasticsearch.version>
         <fasterxml-jackson.version>2.3.2</fasterxml-jackson.version>
     </properties>
