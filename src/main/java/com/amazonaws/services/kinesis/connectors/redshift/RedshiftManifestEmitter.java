@@ -105,7 +105,7 @@ public class RedshiftManifestEmitter implements IEmitter<String> {
     }
 
     @Override
-    public List<String> emit(final UnmodifiableBuffer<String> buffer) throws IOException {
+    public List<String> emit(final UnmodifiableBuffer<String> buffer, String shardId) throws IOException {
         List<String> records = buffer.getRecords();
         Connection conn = null;
 

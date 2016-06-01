@@ -62,7 +62,7 @@ public class S3Emitter implements IEmitter<byte[]> {
     }
 
     @Override
-    public List<byte[]> emit(final UnmodifiableBuffer<byte[]> buffer) throws IOException {
+    public List<byte[]> emit(final UnmodifiableBuffer<byte[]> buffer, String shardId) throws IOException {
         List<byte[]> records = buffer.getRecords();
         // Write all of the records to a compressed output stream
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

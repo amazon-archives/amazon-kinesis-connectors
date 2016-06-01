@@ -148,7 +148,8 @@ public class ElasticsearchEmitter implements IEmitter<ElasticsearchObject> {
      * loss occurs and simplifies restarting the application once issues have been fixed.
      */
     @Override
-    public List<ElasticsearchObject> emit(UnmodifiableBuffer<ElasticsearchObject> buffer) throws IOException {
+    public List<ElasticsearchObject> emit(UnmodifiableBuffer<ElasticsearchObject> buffer,
+        String shardId) throws IOException {
         List<ElasticsearchObject> records = buffer.getRecords();
         if (records.isEmpty()) {
             return Collections.emptyList();

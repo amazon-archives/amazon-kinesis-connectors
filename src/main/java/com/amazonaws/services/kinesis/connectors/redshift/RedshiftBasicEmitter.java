@@ -71,8 +71,8 @@ public class RedshiftBasicEmitter extends S3Emitter {
     }
 
     @Override
-    public List<byte[]> emit(final UnmodifiableBuffer<byte[]> buffer) throws IOException {
-        List<byte[]> failed = super.emit(buffer);
+    public List<byte[]> emit(final UnmodifiableBuffer<byte[]> buffer, String shardId) throws IOException {
+        List<byte[]> failed = super.emit(buffer, shardId);
         if (!failed.isEmpty()) {
             return buffer.getRecords();
         }

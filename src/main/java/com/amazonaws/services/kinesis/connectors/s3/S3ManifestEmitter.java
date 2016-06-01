@@ -58,10 +58,10 @@ public class S3ManifestEmitter extends S3Emitter {
     }
 
     @Override
-    public List<byte[]> emit(final UnmodifiableBuffer<byte[]> buffer) throws IOException {
+    public List<byte[]> emit(final UnmodifiableBuffer<byte[]> buffer, String shardId) throws IOException {
         // Store the contents of buffer.getRecords because superclass will
         // clear the buffer on success
-        List<byte[]> failed = super.emit(buffer);
+        List<byte[]> failed = super.emit(buffer, shardId);
         // calls S3Emitter to write objects to Amazon S3
         if (!failed.isEmpty()) {
             return buffer.getRecords();
