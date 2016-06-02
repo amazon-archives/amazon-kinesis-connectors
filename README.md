@@ -84,6 +84,9 @@ To run a sample, complete these steps:
 4. Within the sample folder, execute **ant run**.
 
 ## Release Notes
+### Release 1.2.3 (June 2, 2016)
++ Implement ConstantRecordCountMemoryBuffer.
+
 ### Release 1.2.0 (June 23, 2015)
 + Upgraded KCL to 1.4.0
 + Added pipelined record processor that decouples Amazon Kinesis GetRecords() and IRecordProcessor's ProcessRecords() API calls for efficiency.

@@ -131,9 +131,15 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
             }
         }
 
-        if (buffer.shouldFlush()) {
+        // Don't assume that the IBuffer implementation contains only a single buffer
+        // to flush. ConstantRecordCountMemoryBuffer for example has a list of internal
+        // buffers, each limited to a fixed number of records. As long as there is more
+        // to flush and the last emit was successful we should continue to emit.
+        while (buffer.shouldFlush()) {
             List<U> emitItems = transformToOutput(buffer.getRecords());
-            emit(checkpointer, emitItems);
+            if (! emit(checkpointer, emitItems)) {
+                break;
+            }
         }
     }
 
@@ -155,7 +161,7 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
         return emitItems;
     }
 
-    private void emit(IRecordProcessorCheckpointer checkpointer, List<U> emitItems) {
+    private boolean emit(IRecordProcessorCheckpointer checkpointer, List<U> emitItems) {
         List<U> unprocessed = new ArrayList<U>(emitItems);
         try {
             for (int numTries = 0; numTries < retryLimit; numTries++) {
@@ -177,10 +183,12 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
             if (lastSequenceNumberProcessed != null) {
                 checkpointer.checkpoint(lastSequenceNumberProcessed);
             }
+            return true;
         } catch (IOException | KinesisClientLibDependencyException | InvalidStateException | ThrottlingException
                 | ShutdownException e) {
             LOG.error(e);
             emitter.fail(unprocessed);
+            return false;
         }
     }
 
@@ -193,7 +201,11 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
         }
         switch (reason) {
             case TERMINATE:
-                emit(checkpointer, transformToOutput(buffer.getRecords()));
+                while (buffer.getRecords().size() > 0) {
+                    if (! emit(checkpointer, transformToOutput(buffer.getRecords()))) {
+                        break;
+                    }
+                }
                 try {
                     checkpointer.checkpoint();
                 } catch (KinesisClientLibDependencyException | InvalidStateException | ThrottlingException | ShutdownException e) {
