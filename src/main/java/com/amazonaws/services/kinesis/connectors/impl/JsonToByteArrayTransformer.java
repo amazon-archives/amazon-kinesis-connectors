@@ -34,7 +34,7 @@ public class JsonToByteArrayTransformer<T> extends BasicJsonTransformer<T, byte[
     @Override
     public byte[] fromClass(T record) throws IOException {
         try {
-            return objectMapper.writeValueAsString(record).getBytes();
+            return objectMapper.writeValueAsBytes(record);
         } catch (JsonProcessingException e) {
             String message = "Error parsing record to JSON";
             LOG.error(message, e);
