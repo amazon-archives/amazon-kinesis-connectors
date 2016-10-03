@@ -117,11 +117,13 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
                 if (transformer instanceof ITransformer) {
                     ITransformer<T, U> singleTransformer = (ITransformer<T, U>) transformer;
                     filterAndBufferRecord(singleTransformer.toClass(record), record);
+                    checkAndEmitBuffer(checkpointer);
                 } else if (transformer instanceof ICollectionTransformer) {
                     ICollectionTransformer<T, U> listTransformer = (ICollectionTransformer<T, U>) transformer;
                     Collection<T> transformedRecords = listTransformer.toClass(record);
                     for (T transformedRecord : transformedRecords) {
                         filterAndBufferRecord(transformedRecord, record);
+                        checkAndEmitBuffer(checkpointer);
                     }
                 } else {
                     throw new RuntimeException("Transformer must implement ITransformer or ICollectionTransformer");
@@ -130,16 +132,18 @@ public class KinesisConnectorRecordProcessor<T, U> implements IRecordProcessor {
                 LOG.error(e);
             }
         }
-
-        if (buffer.shouldFlush()) {
-            List<U> emitItems = transformToOutput(buffer.getRecords());
-            emit(checkpointer, emitItems);
-        }
     }
 
     private void filterAndBufferRecord(T transformedRecord, Record record) {
         if (filter.keepRecord(transformedRecord)) {
             buffer.consumeRecord(transformedRecord, record.getData().array().length, record.getSequenceNumber());
+        }
+    }
+
+    private void checkAndEmitBuffer(IRecordProcessorCheckpointer checkpointer) {
+        if (buffer.shouldFlush()) {
+            List<U> emitItems = transformToOutput(buffer.getRecords());
+            emit(checkpointer, emitItems);
         }
     }
 
