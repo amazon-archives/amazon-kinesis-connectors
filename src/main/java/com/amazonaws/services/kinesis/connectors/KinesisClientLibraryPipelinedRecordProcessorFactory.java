@@ -17,7 +17,7 @@ package com.amazonaws.services.kinesis.connectors;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessor;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessorCheckpointer;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessorFactory;
-import com.amazonaws.services.kinesis.clientlibrary.types.ShutdownReason;
+import com.amazonaws.services.kinesis.clientlibrary.lib.worker.ShutdownReason;
 
 /**
  * Wraps an {@link IRecordProcessorFactory} to decouple fetching records and processing records in the created {@link IRecordProcessor}. The
