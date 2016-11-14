@@ -1,7 +1,7 @@
 <!-- Ant build script for compiling and running the Amazon Kinesis Connector to Elasticsearch sample.
  Don't forget to fill in your AWS access credentials in AwsCredentials.properties
  before trying to run it.  -->
-<project name="Amazon Kinesis Connector to Elasticsearch Sample" default="run" basedir="../../">
+<project name="Amazon Kinesis Connector to Elasticsearch Sample" default="run" basedir="../../../..//">
     <property name="src.dir" location="${basedir}/../" />
     <property name="kcl.dir" location="${src.dir}/KinesisClientLibrary" />
     <property name="external.dir" location="${src.dir}/external" />
@@ -13,14 +13,14 @@
         <fileset dir="${kcl.dir}" includes="**/*.jar" />
         <fileset dir="${external.dir}" includes="**/*.jar" />
         <pathelement location="${basedir}/build" />
-        <pathelement location="." />
-        <pathelement location="${basedir}/samples" />
-        <pathelement location="${basedir}/samples/elasticsearch" />
+        <pathelement location="../../" />
+        <pathelement location="/src/main/java/samples" />
+        <pathelement location="/src/main/java/samples/elasticsearch" />
     </path>
 
     <target name="clean">
         <delete includeEmptyDirs="true" failOnError="false">
-            <fileset dir="." includes="**/*.class" />
+            <fileset dir="../../" includes="**/*.class" />
             <fileset dir="${basedir}/build"/>
             <fileset dir="${kcl.dir}"/>
             <fileset dir="${external.dir}"/>

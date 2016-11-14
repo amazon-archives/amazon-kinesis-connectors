@@ -12,6 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package samples;
 
 import java.io.BufferedReader;
@@ -30,6 +31,8 @@ import org.apache.commons.logging.LogFactory;
 
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.model.PutRecordRequest;
+import samples.KinesisMessageModel;
+import samples.StreamSource;
 
 /**
  * This class is a data source for supplying input to the Amazon Kinesis stream. It reads lines from the
