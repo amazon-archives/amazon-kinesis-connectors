@@ -23,7 +23,7 @@
   </licenses>
 
   <properties>
-    <kinesis-connector.version>1.3.0-SNAPSHOT</kinesis-connector.version>
+    <kinesis-connector.version>1.3.0</kinesis-connector.version>
     <aws-java-sdk.version>1.11.14</aws-java-sdk.version>
   </properties>
 

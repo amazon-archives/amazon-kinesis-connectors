@@ -39,7 +39,7 @@ import com.amazonaws.services.kinesis.clientlibrary.lib.worker.InitialPositionIn
  */
 public class KinesisConnectorConfiguration {
     private static final Log LOG = LogFactory.getLog(KinesisConnectorConfiguration.class);
-    public static final String KINESIS_CONNECTOR_USER_AGENT = "amazon-kinesis-connector-java-1.2.0";
+    public static final String KINESIS_CONNECTOR_USER_AGENT = "amazon-kinesis-connector-java-1.3.0";
 
     // Connector App Property Keys
     public static final String PROP_APP_NAME = "appName";

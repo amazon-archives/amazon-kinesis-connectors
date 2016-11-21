@@ -80,10 +80,21 @@ To run a sample, complete these steps:
 1. Edit the *.properties file, adding your AWS credentials and any necessary AWS resource configurations.
 	+ **Note:** In the samples, [KinesisConnectorExecutor](https://github.com/awslabs/amazon-kinesis-connectors/blob/master/src/main/samples/KinesisConnectorExecutor.java) uses the [DefaultAWSCredentialsProviderChain](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html), which looks for credentials supplied by environment variables, system properties, or IAM role on Amazon EC2. If you prefer to specify your AWS credentials via a properties file on the classpath, edit the sample code to use [ClasspathPropertiesFileCredentialsProvider](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/ClasspathPropertiesFileCredentialsProvider.html) instead.
 2. Confirm that the required AWS resources exist, or set the flags in the *.properties file to indicate that resources should be created when the sample is run.
-3. Within the sample folder, execute **ant setup** to download dependencies for the sample application.
-4. Within the sample folder, execute **ant run**.
+3. Build the samples using Maven
+   ```
+   cd samples
+   mvn package
+   ```
+4. Scripts to start each of the samples will be available in `target/appassembler/bin`
 
 ## Release Notes
+### Release 1.3.0 (November 17, 2016)
+* Upgraded the Amazon Kinesis Client Library to version 1.7.2.
+* Upgraded the AWS Java SDK to 1.11.14.
+* Migrated the sample to now use Maven for dependency management, and execution.
+* **Maven Artifact Signing Change** 
+  * Artifacts are now signed by the identity `Amazon Kinesis Tools <amazon-kinesis-tools@amazon.com>`
+
 ### Release 1.2.0 (June 23, 2015)
 + Upgraded KCL to 1.4.0
 + Added pipelined record processor that decouples Amazon Kinesis GetRecords() and IRecordProcessor's ProcessRecords() API calls for efficiency.
