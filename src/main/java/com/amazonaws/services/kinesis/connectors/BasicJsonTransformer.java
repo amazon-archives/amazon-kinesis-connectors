@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class BasicJsonTransformer<T, U> implements ITransformer<T, U> {
     private static final Log LOG = LogFactory.getLog(BasicJsonTransformer.class);
+    protected static final ObjectMapper objectMapper = new ObjectMapper();
     protected Class<T> inputClass;
 
     public BasicJsonTransformer(Class<T> inputClass) {
@@ -42,7 +43,7 @@ public abstract class BasicJsonTransformer<T, U> implements ITransformer<T, U> {
     @Override
     public T toClass(Record record) throws IOException {
         try {
-            return new ObjectMapper().readValue(record.getData().array(), this.inputClass);
+            return objectMapper.readValue(record.getData().array(), this.inputClass);
         } catch (IOException e) {
             String message = "Error parsing record from JSON: " + new String(record.getData().array());
             LOG.error(message, e);

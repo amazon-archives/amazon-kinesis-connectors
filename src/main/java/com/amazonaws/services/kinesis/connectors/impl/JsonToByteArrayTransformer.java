@@ -14,14 +14,11 @@
  */
 package com.amazonaws.services.kinesis.connectors.impl;
 
-import java.io.IOException;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.amazonaws.services.kinesis.connectors.BasicJsonTransformer;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * The JsonToByteArrayTransformer defines a BasicJsonTransformer with byte array for its output
@@ -37,7 +34,7 @@ public class JsonToByteArrayTransformer<T> extends BasicJsonTransformer<T, byte[
     @Override
     public byte[] fromClass(T record) throws IOException {
         try {
-            return new ObjectMapper().writeValueAsString(record).getBytes();
+            return objectMapper.writeValueAsBytes(record);
         } catch (JsonProcessingException e) {
             String message = "Error parsing record to JSON";
             LOG.error(message, e);
