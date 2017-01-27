@@ -6,7 +6,7 @@
     <artifactId>amazon-kinesis-connectors</artifactId>
     <packaging>jar</packaging>
     <name>Amazon Kinesis Connector Library</name>
-    <version>1.3.0</version>
+    <version>1.3.1-SNAPSHOT</version>
     <description>The Amazon Kinesis Connector Library helps Java developers integrate Amazon Kinesis with other AWS and non-AWS services.</description>
     <url>https://aws.amazon.com/kinesis</url>
 
