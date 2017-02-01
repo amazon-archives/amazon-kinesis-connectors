@@ -102,6 +102,8 @@ public class KinesisConnectorConfiguration {
             "elasticsearchCloudFormationSSHLocation";
     public static final String PROP_ELASTICSEARCH_CLOUDFORMATION_CLUSTER_SIZE =
             "elasticsearchCloudFormationClusterSize";
+    public static final String PROP_FIREHOSE_STREAM_NAME = "streamName";
+    public static final String PROP_FIREHOSE_STREAM_REGION = "streamRegion";
 
     // Default Connector App Constants
     public static final String DEFAULT_APP_NAME = "KinesisConnector";
@@ -156,6 +158,10 @@ public class KinesisConnectorConfiguration {
     public static final String DEFAULT_CLOUDWATCH_NAMESPACE = DEFAULT_APP_NAME;
     public static final long DEFAULT_CLOUDWATCH_BUFFER_TIME = 10 * 1000L;
     public static final int DEFAULT_CLOUDWATCH_MAX_QUEUE_SIZE = 10000;
+
+    // Default Amazon Kinesis Firehose Constants
+    public static final String DEFAULT_FIREHOSE_STREAM_NAME = "OutputStream";
+    public static final String DEFAULT_FIREHOSE_STREAM_REGION = "eu-west-1";
 
     // Default Amazon Elasticsearch Constraints
     public static final String DEFAULT_ELASTICSEARCH_CLUSTER_NAME = "elasticsearch";
@@ -236,6 +242,8 @@ public class KinesisConnectorConfiguration {
     public final String ELASTICSEARCH_CLOUDFORMATION_CLUSTER_INSTANCE_TYPE;
     public final String ELASTICSEARCH_CLOUDFORMATION_SSH_LOCATION;
     public final String ELASTICSEARCH_CLOUDFORMATION_CLUSTER_SIZE;
+    public final String FIREHOSE_STREAM_NAME;
+    public final String FIREHOSE_STREAM_REGION;
 
     /**
      * Configure the connector application with any set of properties that are unique to the application. Any
@@ -349,6 +357,12 @@ public class KinesisConnectorConfiguration {
         ELASTICSEARCH_CLOUDFORMATION_CLUSTER_SIZE =
                 properties.getProperty(PROP_ELASTICSEARCH_CLOUDFORMATION_CLUSTER_SIZE,
                         DEFAULT_ELASTICSEARCH_CLOUDFORMATION_CLUSTER_SIZE);
+        FIREHOSE_STREAM_NAME =
+                properties.getProperty(PROP_FIREHOSE_STREAM_NAME,
+                        DEFAULT_FIREHOSE_STREAM_NAME);
+        FIREHOSE_STREAM_REGION =
+                properties.getProperty(PROP_FIREHOSE_STREAM_REGION,
+                        DEFAULT_FIREHOSE_STREAM_REGION);
 
         // Amazon Kinesis Client Library configuration
         WORKER_ID = properties.getProperty(PROP_WORKER_ID, DEFAULT_WORKER_ID);
