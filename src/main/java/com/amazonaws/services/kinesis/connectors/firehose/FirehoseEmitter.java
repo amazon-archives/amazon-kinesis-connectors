@@ -28,14 +28,12 @@ public class FirehoseEmitter implements IEmitter<Record> {
 
     private final AmazonKinesisFirehoseAsync firehoseClient;
     private final String streamName;
-    private final String streamRegion;
 
     public FirehoseEmitter(KinesisConnectorConfiguration configuration) {
         firehoseClient = AmazonKinesisFirehoseAsyncClientBuilder
                 .defaultClient();
 
         streamName = configuration.FIREHOSE_STREAM_NAME;
-        streamRegion = configuration.FIREHOSE_STREAM_REGION;
     }
 
     /**
