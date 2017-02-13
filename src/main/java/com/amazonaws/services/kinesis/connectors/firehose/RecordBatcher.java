@@ -31,6 +31,10 @@ class RecordBatcher {
 
         for (Record record : records) {
 
+            if (record == null) {
+                continue;
+            }
+
             Integer recSize = record.getData().remaining();
 
             if (numRecords + 1 > 500 || byteSize + recSize > 4194304) {

@@ -98,6 +98,20 @@ public class FirehoseEmitterTest {
     }
 
     @Test
+    public void testNullRecordsCase() throws IOException {
+        ArrayList<Record> recs = new ArrayList<Record>();
+        recs.add(null);
+        expect(buffer.getRecords()).andReturn(recs);
+
+        replay(firehoseClientMock, buffer);
+
+        List<Record> failures = emitter.emit(buffer);
+        Assert.assertTrue(failures.isEmpty());
+
+        verify(firehoseClientMock, buffer);
+    }
+
+    @Test
     public void testWorkingCaseNoFailures() throws IOException, InterruptedException, ExecutionException {
         List<Record> records = generateRecords(1750);
         List<List<Record>> batches = new RecordBatcher().makeBatches(records);
