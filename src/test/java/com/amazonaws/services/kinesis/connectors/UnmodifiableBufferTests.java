@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 import com.amazonaws.services.kinesis.connectors.UnmodifiableBuffer;
@@ -81,5 +82,103 @@ public class UnmodifiableBufferTests {
 
         exception.expect(UnsupportedOperationException.class);
         testRecords.clear();
+    }
+
+    @Test
+    public void testBuffersCompareRecordsForEquality() {
+        ArrayList<Integer> buffer1Records = new ArrayList<>();
+        buffer1Records.add(1);
+        buffer1Records.add(2);
+
+        ArrayList<Integer> buffer2Records = new ArrayList<>();
+
+        UnmodifiableBuffer<Integer> buffer1 = new UnmodifiableBuffer<Integer>(null, buffer1Records);
+        UnmodifiableBuffer<Integer> buffer2 = new UnmodifiableBuffer<Integer>(null, buffer2Records);
+
+        boolean equality = buffer1.equals(buffer2);
+
+        assertThat(equality, is(false));
+
+        buffer2Records.addAll(buffer1Records);
+
+        equality = buffer1.equals(buffer2);
+
+        assertThat(equality, is(true));
+    }
+
+    @Test
+    public void testBuffersCompareInnerBuffersForEquality() {
+        testBuffersUsingInnerBufferEquality(false);
+        testBuffersUsingInnerBufferEquality(true);
+    }
+
+    private void testBuffersUsingInnerBufferEquality(boolean innerBuffersAreEqual) {
+        IBuffer<Object> innerBuffer1 = new EqualityTestBuffer<>(innerBuffersAreEqual);
+        IBuffer<Object> innerBuffer2 = new EqualityTestBuffer<>(innerBuffersAreEqual);
+
+        UnmodifiableBuffer<Object> buffer1 = new UnmodifiableBuffer<Object>(innerBuffer1, null);
+        UnmodifiableBuffer<Object> buffer2 = new UnmodifiableBuffer<Object>(innerBuffer2, null);
+
+        boolean equality = buffer1.equals(buffer2);
+
+        assertThat(equality, is(innerBuffersAreEqual));
+    }
+
+    private class EqualityTestBuffer<T> implements IBuffer<T> {
+        private boolean equalsReturns;
+
+        public EqualityTestBuffer(boolean equalsReturns) {
+            this.equalsReturns = equalsReturns;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return this.equalsReturns;
+        }
+
+        @Override
+        public long getBytesToBuffer() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long getNumRecordsToBuffer() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long getMillisecondsToBuffer() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean shouldFlush() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void consumeRecord(T record, int recordBytes, String sequenceNumber) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getFirstSequenceNumber() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getLastSequenceNumber() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<T> getRecords() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

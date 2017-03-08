@@ -100,7 +100,7 @@ public class UnmodifiableBuffer<T> implements IBuffer<T> {
         }
         if (obj instanceof UnmodifiableBuffer) {
             UnmodifiableBuffer<?> other = (UnmodifiableBuffer<?>) obj;
-            return Objects.equals(buf, other.buf) && Objects.equals(records, records);
+            return Objects.equals(buf, other.buf) && Objects.equals(records, other.records);
         }
         return false;
     }
