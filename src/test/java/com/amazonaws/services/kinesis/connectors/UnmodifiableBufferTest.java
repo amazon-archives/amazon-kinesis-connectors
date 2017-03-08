@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 import com.amazonaws.services.kinesis.connectors.UnmodifiableBuffer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IBuffer;
 
-public class UnmodifiableBufferTests {
+public class UnmodifiableBufferTest {
     IMocksControl control;
     IBuffer<Integer> buffer;
 

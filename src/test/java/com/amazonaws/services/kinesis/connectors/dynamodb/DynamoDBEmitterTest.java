@@ -34,7 +34,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.connectors.dynamodb.DynamoDBEmitter;
 
-public class DynamoDBEmitterTests {
+public class DynamoDBEmitterTest {
     IMocksControl control;
     KinesisConnectorConfiguration config;
     AWSCredentialsProvider credsProvider;

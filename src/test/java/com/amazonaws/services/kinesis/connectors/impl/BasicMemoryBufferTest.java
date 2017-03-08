@@ -31,7 +31,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.connectors.impl.BasicMemoryBuffer;
 
-public class BasicMemoryBufferTests {
+public class BasicMemoryBufferTest {
     KinesisConnectorConfiguration config;
 
     IMocksControl control;
