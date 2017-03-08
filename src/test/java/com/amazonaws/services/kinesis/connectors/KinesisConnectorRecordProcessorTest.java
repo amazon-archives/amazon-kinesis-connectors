@@ -44,7 +44,7 @@ import com.amazonaws.services.kinesis.connectors.interfaces.ITransformer;
 import com.amazonaws.services.kinesis.connectors.interfaces.ITransformerBase;
 import com.amazonaws.services.kinesis.model.Record;
 
-public class KinesisConnectorRecordProcessorTests {
+public class KinesisConnectorRecordProcessorTest {
     // control object used to create mock dependencies
     IMocksControl control;
 
