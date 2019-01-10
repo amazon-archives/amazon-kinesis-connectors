@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.amazonaws.services.kinesis.clientlibrary.interfaces.IPreparedCheckpointer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -264,6 +265,30 @@ public class KinesisClientLibraryPipelinedRecordProcessor implements IRecordProc
 
             @Override
             public void checkpoint(String sequenceNumber, long subSequenceNumber) throws KinesisClientLibDependencyException,
+                    InvalidStateException, ThrottlingException, ShutdownException, IllegalArgumentException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public IPreparedCheckpointer prepareCheckpoint() throws KinesisClientLibDependencyException,
+                    InvalidStateException, ThrottlingException, ShutdownException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public IPreparedCheckpointer prepareCheckpoint(Record record) throws KinesisClientLibDependencyException,
+                    InvalidStateException, ThrottlingException, ShutdownException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public IPreparedCheckpointer prepareCheckpoint(String s) throws KinesisClientLibDependencyException,
+                    InvalidStateException, ThrottlingException, ShutdownException, IllegalArgumentException {
+                return internalCheckpointer.prepareCheckpoint(s);
+            }
+
+            @Override
+            public IPreparedCheckpointer prepareCheckpoint(String s, long l) throws KinesisClientLibDependencyException,
                     InvalidStateException, ThrottlingException, ShutdownException, IllegalArgumentException {
                 throw new UnsupportedOperationException();
             }
