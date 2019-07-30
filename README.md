@@ -129,3 +129,7 @@ To run a sample, complete these steps:
 [aws-redshift]: http://aws.amazon.com/redshift/
 [aws-s3]: http://aws.amazon.com/s3/
 [Elasticsearch]: http://www.elasticsearch.org/
+
+## License
+
+This library is licensed under the Apache 2.0 License.
